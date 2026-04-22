@@ -1,6 +1,5 @@
 <template>
   <div class="app-layout">
-    <app-header class="app-layout__header" />
     <div class="app-layout__body">
       <app-sidebar class="app-layout__sidebar" />
       <app-main class="app-layout__main" />

@@ -2,7 +2,7 @@
   <div class="app-sidebar" :class="{ 'is-collapse': isCollapse }">
     <div class="sidebar-header">
       <span class="logo">📋</span>
-      <span v-show="!isCollapse" class="title">村庄事务管理系统</span>
+      <span v-show="!isCollapse" class="title">VILGO</span>
     </div>
 
     <el-menu
@@ -17,7 +17,7 @@
           <span>村民管理</span>
         </template>
         <el-menu-item index="2-1">人员列表</el-menu-item>
-        <el-menu-item index="2-2">数据统计</el-menu-item>
+        <el-menu-item index="/resident/statistics">数据统计</el-menu-item>
       </el-sub-menu>
 
       <!-- 户籍档案 -->

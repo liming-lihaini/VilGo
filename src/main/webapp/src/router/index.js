@@ -20,7 +20,7 @@ const routes = [
       {
         path: '/resident/statistics',
         name: 'ResidentStatistics',
-        component: () => import('../views/resident/ResidentList.vue')
+        component: () => import('../views/resident/ResidentStatistics.vue')
       },
       {
         path: '/household',
