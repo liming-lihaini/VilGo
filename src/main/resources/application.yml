@@ -1,0 +1,36 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: village-affairs-management
+  datasource:
+    driver-class-name: org.sqlite.JDBC
+    url: jdbc:sqlite:${user.dir}/data/village.db
+    hikari:
+      maximum-pool-size: 1
+      minimum-idle: 0
+  resources:
+    static-locations: classpath:/static/,classpath:/templates/
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.village.entity
+
+logging:
+  level:
+    com.village: debug
+    org.springframework.web: info
