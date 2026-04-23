@@ -46,3 +46,73 @@ CREATE TABLE IF NOT EXISTS resident_attachments (
 
 CREATE INDEX IF NOT EXISTS idx_attachments_resident_id ON resident_attachments(resident_id);
 CREATE INDEX IF NOT EXISTS idx_attachments_category ON resident_attachments(file_category);
+
+-- 家庭户表
+CREATE TABLE IF NOT EXISTS households (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    household_no VARCHAR(20) NOT NULL UNIQUE,
+    head_id INTEGER,
+    head_name VARCHAR(50),
+    head_id_card VARCHAR(18),
+    address VARCHAR(200),
+    phone VARCHAR(20),
+    member_count INTEGER DEFAULT 0,
+    create_time TEXT,
+    update_time TEXT,
+    deleted INTEGER DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS idx_households_no ON households(household_no);
+CREATE INDEX IF NOT EXISTS idx_households_head ON households(head_id);
+CREATE INDEX IF NOT EXISTS idx_households_deleted ON households(deleted);
+
+-- 家庭成员表
+CREATE TABLE IF NOT EXISTS household_members (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    household_id INTEGER NOT NULL,
+    resident_id INTEGER NOT NULL,
+    relation VARCHAR(20),
+    create_time TEXT,
+    deleted INTEGER DEFAULT 0,
+    FOREIGN KEY (household_id) REFERENCES households(id),
+    FOREIGN KEY (resident_id) REFERENCES residents(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_members_household ON household_members(household_id);
+CREATE INDEX IF NOT EXISTS idx_members_resident ON household_members(resident_id);
+
+-- 年度收入表
+CREATE TABLE IF NOT EXISTS household_income (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    household_id INTEGER NOT NULL,
+    year INTEGER NOT NULL,
+    total_income DECIMAL(12,2),
+    per_capita_income DECIMAL(12,2),
+    income_source VARCHAR(200),
+    remark VARCHAR(500),
+    create_time TEXT,
+    deleted INTEGER DEFAULT 0,
+    FOREIGN KEY (household_id) REFERENCES households(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_income_household ON household_income(household_id);
+CREATE INDEX IF NOT EXISTS idx_income_year ON household_income(year);
+
+-- 户籍变动表
+CREATE TABLE IF NOT EXISTS household_changes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    household_id INTEGER NOT NULL,
+    change_type VARCHAR(20) NOT NULL,
+    change_time TEXT,
+    change_reason VARCHAR(200),
+    related_persons VARCHAR(200),
+    before_status VARCHAR(100),
+    after_status VARCHAR(100),
+    remark VARCHAR(500),
+    create_time TEXT,
+    deleted INTEGER DEFAULT 0,
+    FOREIGN KEY (household_id) REFERENCES households(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_changes_household ON household_changes(household_id);
+CREATE INDEX IF NOT EXISTS idx_changes_type ON household_changes(change_type);

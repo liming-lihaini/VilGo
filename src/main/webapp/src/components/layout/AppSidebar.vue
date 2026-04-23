@@ -1,7 +1,7 @@
 <template>
   <div class="app-sidebar" :class="{ 'is-collapse': isCollapse }">
     <div class="sidebar-header">
-      <span class="logo">📋</span>
+      <img class="logo-img" :src="logoImage" />
       <span v-show="!isCollapse" class="title">VILGO</span>
     </div>
 
@@ -95,6 +95,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { DArrowLeft, DArrowRight, User, House, UserFilled, Avatar, TrendCharts, Star, Bell, Document, DataBoard } from '@element-plus/icons-vue'
+import logoImage from '@/assets/images/logo-1.png'
 
 const route = useRoute()
 const STORAGE_KEY = 'sidebar_collapse'
@@ -260,22 +261,24 @@ onMounted(() => {
 
 .sidebar-header {
   height: 60px;
-  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
-  color: #fff;
+  color: #409eff;
+  font-size: 24px;
   display: flex;
   align-items: center;
   padding: 0 16px;
   gap: 10px;
   flex-shrink: 0;
+  border-bottom: 1px solid #f5eded;
 }
 
-.sidebar-header .logo {
-  font-size: 24px;
+.sidebar-header .logo-img {
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
 }
 
 .sidebar-header .title {
-  font-size: 14px;
+  font-size: 24px;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
