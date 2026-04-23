@@ -16,6 +16,31 @@ public class ResidentStatisticsDTO {
     private Long totalCount;
 
     /**
+     * 常住人口数
+     */
+    private Long localResidentCount;
+
+    /**
+     * 就读学生数
+     */
+    private Long studentCount;
+
+    /**
+     * 低保人数
+     */
+    private Long allowanceCount;
+
+    /**
+     * 五保户人数
+     */
+    private Long fiveGuaranteeCount;
+
+    /**
+     * 非本地户籍人数
+     */
+    private Long nonLocalHouseholdCount;
+
+    /**
      * 按户籍状态统计
      */
     private Map<String, Long> householdStatusCount;

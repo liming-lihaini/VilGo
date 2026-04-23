@@ -3,25 +3,19 @@
     <!-- 查询条件 -->
     <div class="filter-bar">
       <el-form :inline="true" :model="queryForm" class="query-form">
-        <el-form-item label="姓名">
+        <el-form-item label="姓名" style="width: 150px">
           <el-input v-model="queryForm.name" placeholder="请输入姓名" clearable @keyup.enter="handleQuery" />
         </el-form-item>
-        <el-form-item label="身份证号">
+        <el-form-item label="身份证号" style="width: 200px">
           <el-input v-model="queryForm.idCard" placeholder="请输入身份证号" clearable @keyup.enter="handleQuery" />
         </el-form-item>
-        <el-form-item label="性别">
-          <el-select v-model="queryForm.gender" placeholder="请选择" clearable>
-            <el-option label="男" value="male" />
-            <el-option label="女" value="female" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="户籍状态">
+        <el-form-item label="户籍状态" style="width: 180px">
           <el-select v-model="queryForm.householdStatus" placeholder="请选择" clearable>
             <el-option label="正常" value="normal" />
             <el-option label="已销户" value="cancelled" />
           </el-select>
         </el-form-item>
-        <el-form-item label="人员类型">
+        <el-form-item label="人员类型" style="width: 180px">
           <el-select v-model="queryForm.personType" placeholder="请选择" clearable>
             <el-option label="农民" value="farmer" />
             <el-option label="工人" value="worker" />
@@ -30,9 +24,6 @@
             <el-option label="学生" value="student" />
             <el-option label="其他" value="other" />
           </el-select>
-        </el-form-item>
-        <el-form-item label="所属村组">
-          <el-input v-model="queryForm.village" placeholder="请输入村组" clearable @keyup.enter="handleQuery" />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleQuery">查询</el-button>
@@ -45,6 +36,7 @@
     <!-- 操作栏 -->
     <div class="toolbar">
       <el-button type="primary" @click="handleAdd">新增村民</el-button>
+      <el-button type="success" @click="handleImport">导入</el-button>
       <el-button type="danger" :disabled="selectedRows.length === 0" @click="handleBatchDelete">
         批量删除
       </el-button>
@@ -80,22 +72,47 @@
           {{ getPersonTypeName(row.personType) }}
         </template>
       </el-table-column>
-      <el-table-column prop="securityType" label="保障类型" width="100">
+      <el-table-column prop="securityType" label="保障类型" width="180">
         <template #default="{ row }">
-          {{ getSecurityTypeName(row.securityType) }}
+          <el-tag v-for="type in (row.securityType || '').split(',')" :key="type" size="small" style="margin-right: 4px">
+            {{ getSecurityTypeName(type) }}
+          </el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="phone" label="联系电话" width="120" />
       <el-table-column prop="address" label="住址" min-width="150" show-overflow-tooltip />
-      <el-table-column prop="village" label="所属村组" width="120" />
+      <el-table-column prop="isLocalHousehold" label="本村户籍" width="90" align="center">
+        <template #default="{ row }">
+          <el-tag :type="row.isLocalHousehold === 1 ? 'success' : 'info'">
+            {{ row.isLocalHousehold === 1 ? '是' : '否' }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="isHouseholdHead" label="户主" width="70" align="center">
+        <template #default="{ row }">
+          <el-tag :type="row.isHouseholdHead === 1 ? 'success' : 'info'">
+            {{ row.isHouseholdHead === 1 ? '是' : '否' }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="isLocalResident" label="常住" width="70" align="center">
+        <template #default="{ row }">
+          <el-tag :type="row.isLocalResident === 1 ? 'success' : 'info'">
+            {{ row.isLocalResident === 1 ? '是' : '否' }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="externalAddress" label="外居地址" min-width="150" show-overflow-tooltip />
       <el-table-column prop="createTime" label="创建时间" width="160">
         <template #default="{ row }">
           {{ formatDateTime(row.createTime) }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="200" fixed="right">
+      <el-table-column label="操作" width="280" fixed="right">
         <template #default="{ row }">
+          <el-button type="primary" link @click="handleDetail(row)">详情</el-button>
           <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
+          <el-button type="success" link @click="handleAttachment(row)">附件</el-button>
           <el-button type="warning" link @click="handleCancel(row)" :disabled="row.householdStatus === 'cancelled'">
             销户
           </el-button>
@@ -118,59 +135,92 @@
     </div>
 
     <!-- 新增/编辑弹窗 -->
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="700px" destroy-on-close>
+    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="900px" destroy-on-close>
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
-        <el-form-item label="姓名" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入姓名" />
-        </el-form-item>
-        <el-form-item label="身份证号" prop="idCard">
-          <el-input v-model="formData.idCard" placeholder="请输入身份证号" :disabled="!!formData.id" />
-        </el-form-item>
-        <el-form-item label="性别" prop="gender">
-          <el-radio-group v-model="formData.gender">
-            <el-radio label="male">男</el-radio>
-            <el-radio label="female">女</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="出生日期" prop="birthDate">
-          <el-date-picker v-model="formData.birthDate" type="date" placeholder="选择日期" value-format="YYYY-MM-DD" />
-        </el-form-item>
-        <el-form-item label="人员类型" prop="personType">
-          <el-select v-model="formData.personType" placeholder="请选择">
-            <el-option label="农民" value="farmer" />
-            <el-option label="工人" value="worker" />
-            <el-option label="教师" value="teacher" />
-            <el-option label="医生" value="doctor" />
-            <el-option label="学生" value="student" />
-            <el-option label="其他" value="other" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="保障类型" prop="securityType">
-          <el-select v-model="formData.securityType" placeholder="请选择">
-            <el-option label="养老保险" value="pension" />
-            <el-option label="医疗保险" value="insurance" />
-            <el-option label="低保" value="allowance" />
-            <el-option label="未参保" value="none" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="联系电话" prop="phone">
-          <el-input v-model="formData.phone" placeholder="请输入联系电话" />
-        </el-form-item>
-        <el-form-item label="住址" prop="address">
-          <el-input v-model="formData.address" placeholder="请输入住址" />
-        </el-form-item>
-        <el-form-item label="户主姓名" prop="householdHead">
-          <el-input v-model="formData.householdHead" placeholder="请输入户主姓名" />
-        </el-form-item>
-        <el-form-item label="与户主关系" prop="relationship">
-          <el-input v-model="formData.relationship" placeholder="请输入与户主关系" />
-        </el-form-item>
-        <el-form-item label="所属村组" prop="village">
-          <el-input v-model="formData.village" placeholder="请输入所属村组" />
-        </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="formData.remark" type="textarea" :rows="3" placeholder="请输入备注" />
-        </el-form-item>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="姓名" prop="name">
+              <el-input v-model="formData.name" placeholder="请输入姓名" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="身份证号" prop="idCard">
+              <el-input v-model="formData.idCard" placeholder="请输入身份证号" :disabled="!!formData.id" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="性别" prop="gender">
+              <el-radio-group v-model="formData.gender">
+                <el-radio label="male">男</el-radio>
+                <el-radio label="female">女</el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="出生日期" prop="birthDate">
+              <el-date-picker v-model="formData.birthDate" type="date" placeholder="选择日期" value-format="YYYY-MM-DD" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="人员类型" prop="personType">
+              <el-select v-model="formData.personType" placeholder="请选择" style="width: 100%">
+                <el-option label="农民" value="farmer" />
+                <el-option label="工人" value="worker" />
+                <el-option label="教师" value="teacher" />
+                <el-option label="医生" value="doctor" />
+                <el-option label="学生" value="student" />
+                <el-option label="其他" value="other" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="联系电话" prop="phone">
+              <el-input v-model="formData.phone" placeholder="请输入联系电话" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="保障类型" prop="securityType">
+              <el-checkbox-group v-model="formData.securityTypeList">
+                <el-checkbox label="pension">社会养老</el-checkbox>
+                <el-checkbox label="worker_pension">职工养老</el-checkbox>
+                <el-checkbox label="allowance">低保</el-checkbox>
+                <el-checkbox label="five_guarantee">五保</el-checkbox>
+                <el-checkbox label="other">其他</el-checkbox>
+                <el-checkbox label="none">无</el-checkbox>
+              </el-checkbox-group>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="住址" prop="address">
+              <el-input v-model="formData.address" placeholder="请输入住址" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="本村户籍">
+              <el-switch v-model="formData.isLocalHousehold" :active-value="1" :inactive-value="0" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="是否户主">
+              <el-switch v-model="formData.isHouseholdHead" :active-value="1" :inactive-value="0" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="本村常住">
+              <el-switch v-model="formData.isLocalResident" :active-value="1" :inactive-value="0" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="外地地址" prop="externalAddress">
+              <el-input v-model="formData.externalAddress" placeholder="请输入外地居住地址" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="备注" prop="remark">
+              <el-input v-model="formData.remark" type="textarea" :rows="2" placeholder="请输入备注" />
+            </el-form-item>
+          </el-col>
+        </el-row>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
@@ -179,6 +229,25 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- 附件管理弹窗 -->
+    <ResidentAttachment
+      v-model:visible="attachmentDialogVisible"
+      :resident-id="currentResidentId"
+      :resident-name="currentResidentName"
+    />
+
+    <!-- 详情抽屉 -->
+    <ResidentDrawer
+      v-model:visible="drawerVisible"
+      :resident-id="currentResidentId"
+    />
+
+    <!-- 导入弹窗 -->
+    <ResidentImport
+      v-model:visible="importDialogVisible"
+      @success="handleQuery"
+    />
   </div>
 </template>
 
@@ -186,6 +255,9 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { residentApi } from '@/request/resident'
+import ResidentAttachment from './ResidentAttachment.vue'
+import ResidentDrawer from './ResidentDrawer.vue'
+import ResidentImport from './ResidentImport.vue'
 
 // 查询表单
 const queryForm = reactive({
@@ -221,17 +293,51 @@ const formData = reactive({
   birthDate: '',
   personType: '',
   securityType: '',
+  securityTypeList: [],
   phone: '',
   address: '',
   householdHead: '',
   relationship: '',
   village: '',
+  isLocalHousehold: 1,
+  isHouseholdHead: 0,
+  isLocalResident: 1,
+  externalAddress: '',
   remark: ''
 })
 
 const formRules = {
   name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
   idCard: [{ required: true, message: '请输入身份证号', trigger: 'blur' }]
+}
+
+// 附件弹窗
+const attachmentDialogVisible = ref(false)
+const currentResidentId = ref(null)
+const currentResidentName = ref('')
+
+// 附件管理
+const handleAttachment = (row) => {
+  currentResidentId.value = row.id
+  currentResidentName.value = row.name
+  attachmentDialogVisible.value = true
+}
+
+// 详情抽屉
+const drawerVisible = ref(false)
+
+// 导入弹窗
+const importDialogVisible = ref(false)
+
+// 查看详情
+const handleDetail = (row) => {
+  currentResidentId.value = row.id
+  drawerVisible.value = true
+}
+
+// 导入
+const handleImport = () => {
+  importDialogVisible.value = true
 }
 
 // 人员类型映射
@@ -246,22 +352,24 @@ const personTypeMap = {
 
 // 保障类型映射
 const securityTypeMap = {
-  pension: '养老保险',
-  insurance: '医疗保险',
+  pension: '社会养老',
+  worker_pension: '职工养老',
   allowance: '低保',
-  none: '未参保'
+  five_guarantee: '五保',
+  other: '其他',
+  none: '无'
 }
 
 // 获取人员类型名称
 const getPersonTypeName = (type) => personTypeMap[type] || '-'
 
 // 获取保障类型名称
-const getSecurityTypeName = (type) => securityTypeMap[type] || '-'
+const getSecurityTypeName = (type) => securityTypeMap[type] || type
 
 // 格式化时间
 const formatDateTime = (datetime) => {
   if (!datetime) return '-'
-  return datetime.replace('T', ' ').substring(0, 19)
+  return datetime.replace('T', ' ').substring(0, 10)
 }
 
 // 查询
@@ -310,11 +418,16 @@ const handleAdd = () => {
     birthDate: '',
     personType: '',
     securityType: '',
+    securityTypeList: [],
     phone: '',
     address: '',
     householdHead: '',
     relationship: '',
     village: '',
+    isLocalHousehold: 1,
+    isHouseholdHead: 0,
+    isLocalResident: 1,
+    externalAddress: '',
     remark: ''
   })
   dialogVisible.value = true
@@ -325,6 +438,8 @@ const handleEdit = async (row) => {
   dialogTitle.value = '编辑村民'
   try {
     const result = await residentApi.get(row.id)
+    // 将逗号分隔的字符串转换为数组
+    result.securityTypeList = result.securityType?.split(',').filter(Boolean) || []
     Object.assign(formData, result)
     dialogVisible.value = true
   } catch (error) {
@@ -338,11 +453,16 @@ const handleSubmit = async () => {
   await formRef.value.validate(async (valid) => {
     if (valid) {
       try {
+        // 将多选转换为逗号分隔的字符串
+        const submitData = { ...formData }
+        submitData.securityType = submitData.securityTypeList?.join(',') || ''
+        delete submitData.securityTypeList
+
         if (formData.id) {
-          await residentApi.update(formData)
+          await residentApi.update(submitData)
           ElMessage.success('更新成功')
         } else {
-          await residentApi.create(formData)
+          await residentApi.create(submitData)
           ElMessage.success('新增成功')
         }
         dialogVisible.value = false

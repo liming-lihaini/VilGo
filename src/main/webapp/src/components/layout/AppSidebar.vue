@@ -8,6 +8,7 @@
     <el-menu
       :default-active="activeMenu"
       :collapse="isCollapse"
+      :router="true"
       class="sidebar-menu"
     >
 
@@ -16,7 +17,7 @@
           <el-icon><User /></el-icon>
           <span>村民管理</span>
         </template>
-        <el-menu-item index="2-1">人员列表</el-menu-item>
+        <el-menu-item index="/resident">人员列表</el-menu-item>
         <el-menu-item index="/resident/statistics">数据统计</el-menu-item>
       </el-sub-menu>
 

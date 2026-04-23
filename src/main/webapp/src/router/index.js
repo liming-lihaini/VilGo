@@ -11,12 +11,7 @@ const routes = [
         path: '/resident',
         name: 'Resident',
         component: () => import('../views/resident/ResidentList.vue')
-      },
-      {
-        path: '/resident/create',
-        name: 'ResidentCreate',
-        component: () => import('../views/resident/ResidentList.vue')
-      },
+      },  
       {
         path: '/resident/statistics',
         name: 'ResidentStatistics',

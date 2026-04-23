@@ -2,7 +2,7 @@
 
 ## 概述
 
-实现村民"一人一档"规范化管理，支持村民基础信息录入、编辑、删除；关联社保、养老、低保等保障类档案信息，记录保障状态及变动；支持销户登记（标记销户状态，不删除原始数据）；提供按身份证号、姓名、住址等多条件查询，支持人口统计及档案报表导出（Excel格式）；基础信息以身份证号为唯一标识，杜绝重复录入。
+实现村民"一人一档"规范化管理，支持村民基础信息录入、编辑、删除；关联社保、养老、低保等保障类档案信息，记录保障状态及变动；支持销户登记（标记销户状态，不删除原始数据）；支持村民附件管理（身份证照片、个人照片、复印件等）；提供按身份证号、姓名、住址等多条件查询，支持人口统计及档案报表导出（Excel格式）；基础信息以身份证号为唯一标识，杜绝重复录入。
 
 ## 功能需求
 
@@ -12,8 +12,8 @@
 |--------|------|
 | 需求名称 | 新增村民档案 |
 | 需求描述 | 工作人员录入村民基础信息，系统校验身份证号唯一性后入库 |
-| 输入 | 姓名、身份证号、性别、出生日期、联系方式、家庭住址、婚姻状况、政治面貌、保障类型、人员类型、人员角色、备注 |
-| ��验 | 身份证号全局唯一性 |
+| 输入 | 姓名、身份证号、性别、出生日期、联系方式、家庭住址、保障类型、人员类型、本村户籍、是否户主、本村常住、外地地址、备注 |
+| 校验 | 身份证号全局唯一性 |
 | 输出 | 创建成功提示，档案出现在列表中 |
 | 异常处理 | 身份证号重复提示"已存在相关记录，请核对后重新录入" |
 
@@ -67,10 +67,11 @@
 | 需求项 | 内容 |
 |--------|------|
 | 需求名称 | 人口统计 |
-| 需求描述 | 按人员类型、保障类型等条件统计人口数据 |
+| 需求描述 | 按人员类型、保障类型、户籍状态、村组等条件统计人口数据，展示统计图表 |
 | 输入 | 统计条件 |
 | 校验 | - |
-| 输出 | 统计结果（总数、分类统计） |
+| 输出 | 统计结果（总数、常住人口、就读学生、低保、五保、非本地户籍等）及ECharts图表 |
+| 图表类型 | 环形图、饼图、柱状图 |
 
 ### F-RES-007 Excel报表导出
 
@@ -82,13 +83,37 @@
 | 校验 | 存在可导出的数据 |
 | 输出 | Excel文件下载 |
 
+### F-RES-008 村民附件管理
+
+| 需求项 | 内容 |
+|--------|------|
+| 需求名称 | 村民附件管理 |
+| 需求描述 | 上传、管理村民相关附件（身份证照片、个人照片、复印件等） |
+| 输入 | 文件、附件类型 |
+| 附件类型 | 身份证照片、个人照片、身份证复印件、社保卡复印件、户口本复印件、其他 |
+| 校验 | 文件格式（仅支持jpg、png、pdf） |
+| 输出 | 上传成功显示在附件列表 |
+| 预览支持 | 图片直接预览、PDF内嵌预览、其他格式提示下载 |
+| 存储 | 本地固定文件夹 D:/village-data/attachments/ |
+
+### F-RES-009 档案详情查看
+
+| 需求项 | 内容 |
+|--------|------|
+| 需求名称 | 档案详情查看 |
+| 需求描述 | 点击村民姓名或详情按钮，右侧抽屉展示完整档案信息和附件 |
+| 输入 | 档案ID |
+| 输出 | 抽屉展示基本信息、附件信息 |
+| 附件展示 | 按类型分类展示，支持预览和管理 |
+| 全屏预览 | 支持图片/PDF全屏预览 |
+
 ## 技术方案
 
 ### 前端界面设计
 
 前端功能菜单为人员档案管理，包含以下子页面：
-人员列表【二级菜单】，包含新增、编辑、删除、销户、数据导入、导出等操作；
-数据统计【二级菜单】，可选择统计条件，展示统计结果；
+人员列表【二级菜单】，包含新增、编辑、删除、销户、查看详情、附件管理、数据导入、导出等操作；
+数据统计【二级菜单】，可选择统计条件，展示统计结果（ECharts图表）；
 
 点击菜单在主页面右侧展示管理界面，自动配置菜单和路由规则
 
@@ -96,20 +121,48 @@
 
 ```
 ┌────────────────────────────────────────────────────────────┐
-│  顶部工具栏: [新增] [导入] [导出] [筛选] [统计]              │
+│  顶部工具栏: [新增] [批量删除] [导出Excel]                   │
 ├─────────────────────────────────────────────────────────────┤
-│  查询条件: [身份证号] [姓名] [住址] [人员类型▼] [保障类型▼]  │
+│  查询条件: [姓名] [身份证号] [户籍状态▼] [人员类型▼]         │
 ├─────────────────────────────────────────────────────────────┤
 │                    档案列表区                              │
 │  ┌─────────────────────────────────────────────────────┐   │
-│  │  序号 │ 身份证号 │ 姓名 │ 性别 │ 住址 │ 类型 │ 状态 │   │
+│  │ □ │ 姓名 │ 身份证号 │ 性别 │ 户籍 │ 类型 │ 操作    │   │
 │  ├─────────────────────────────────────────────────────┤   │
-│  │  1    │ 320...  │ 张三 │ 男   │ XX村 │ 群众 │ 正常 │   │
-│  │  2    │ 321...  │ 李四 │ 女   │ XX村 │ 党员 │ 销户 │   │
+│  │ □ │ 张三 │ 320...  │ 男   │ 正常 │ 农民 │ 详情编辑 │   │
+│  │ □ │ 李四 │ 321...  │ 女   │ 销户 │ 学生 │ 详情编辑 │   │
 │  └─────────────────────────────────────────────────────┘   │
 ├─────────────────────────────────────────────────────────────┤
 │  分页: 共 100 条 | 第 1/10 页 | [上一页] [下一页]           │
-└─────────────────────────────────────────────────────────────┘
+└────────────────────────────────────────────────────────────┘
+```
+
+#### 详情抽屉
+
+```
+┌──────────────────────────────────┐
+│  张三 的档案详情              X  │
+├──────────────────────────────────┤
+│  基本信息                         │
+│  ┌────────────┬──────────────┐   │
+│  │ 姓名: 张三 │ 性别: 男     │   │
+│  │ 身份证号:  │ 320...       │   │
+│  │ 出生日期:  │ 1990-01-01   │   │
+│  │ 联系电话:  │ 138...       │   │
+│  │ 人员类型:  │ 农民         │   │
+│  │ 本村户籍:  │ 是           │   │
+│  │ 户主:      │ 否           │   │
+│  │ 本村常住:  │ 是           │   │
+│  │ 户籍状态:  │ 正常         │   │
+│  └────────────┴──────────────┘   │
+│                                  │
+│  附件信息            [管理附件]   │
+│  ┌────┬────┬────┐                │
+│  │身份证│个人│复印件            │
+│  ├────┼────┼────┤                │
+│  │ [图] │ [图]│ [图]             │
+│  └────┴────┴────┘                │
+└──────────────────────────────────┘
 ```
 
 #### 关键组件
@@ -118,9 +171,11 @@
 |------|------|------|
 | `ResidentList` | 档案列表，表格形式展示 | `click`, `dblclick`, `select` |
 | `ResidentForm` | 新增/编辑表单弹窗 | `confirm`, `cancel` |
+| `ResidentDrawer` | 详情抽屉组件 | `close`, `refresh` |
+| `ResidentAttachment` | 附件管理弹窗 | `upload`, `delete`, `refresh` |
+| `ResidentStatistics` | 统计页面（含ECharts图表） | `load` |
 | `SearchBar` | 查询条件栏 | `search`, `reset` |
 | `Toolbar` | 顶部工具栏 | `click` |
-| `StatModal` | 统计弹窗 | `close` |
 | `ConfirmDialog` | 确认删除弹窗 | `confirm`, `cancel` |
 
 #### 交互流程
@@ -129,6 +184,18 @@
 ```
 点击"新增" → 弹出表单对话框 → 录入村民信息 → 点击确定
 → 调用POST /api/resident/create → 成功→刷新列表 → 失败→提示错误
+```
+
+**查看详情流程**:
+```
+点击"详情" → 右侧抽屉滑出 → 加载基本信息和附件
+→ 可点击"管理附件"打开附件管理弹窗
+```
+
+**附件上传流程**:
+```
+选择附件类型 → 选择文件 → 上传
+→ 调用POST /api/resident/attachment/upload → 成功→显示在列表
 ```
 
 **销户流程**:
@@ -151,6 +218,8 @@
 | 必填字段为空 | "请补充必填信息（标注*字段）" |
 | 档案不存在 | "档案不存在或已删除" |
 | 查询无结果 | "暂无相关记录，请调整查询条件后重试" |
+| 文件格式不支持 | "仅支持 jpg、png、pdf 格式" |
+| 上传失败 | "上传失败: " + 错误信息 |
 
 ### 数据结构
 
@@ -158,26 +227,41 @@
 
 | 字段 | 类型 | 约束 | 说明 |
 |------|------|------|------|
-| id | BIGINT | PK, AUTO | 档案ID |
+| id | INTEGER | PK, AUTO | 档案ID |
 | id_card | VARCHAR(18) | UNIQUE, NOT NULL | 身份证号 |
 | name | VARCHAR(50) | NOT NULL | 姓名 |
-| gender | VARCHAR(10) | | 性别 |
+| gender | VARCHAR(10) | | 性别（male/female） |
 | birth_date | DATE | | 出生日期 |
-| phone | VARCHAR(20) | | 联系方式 |
-| address | VARCHAR(200) | | 家庭住址 |
-| marital_status | VARCHAR(20) | | 婚姻状况 |
-| political_status | VARCHAR(20) | | 政治面貌 |
-| photo | VARCHAR(500) | | 照片路径 |
-| guarantee_type | VARCHAR(20) | | 保障类型 |
-| household_status | VARCHAR(10) | DEFAULT '正常' | 销户状态 |
-| is_head | TINYINT | DEFAULT 0 | 是否户主 |
-| person_type | VARCHAR(20) | | 人员类型 |
-| person_role | VARCHAR(20) | | 人员角色 |
+| household_status | VARCHAR(20) | DEFAULT 'normal' | 户籍状态（normal/cancelled） |
+| person_type | VARCHAR(20) | | 人员类型（farmer/worker/teacher/doctor/student/other） |
+| security_type | VARCHAR(200) | | 保障类型（多选，逗号分隔：pension/worker_pension/allowance/five_guarantee/other/none） |
+| phone | VARCHAR(20) | | 联系电话 |
+| address | VARCHAR(200) | | 住址 |
+| household_head | VARCHAR(50) | | 户主姓名 |
+| relationship | VARCHAR(20) | | 与户主关系 |
+| village | VARCHAR(50) | | 村组 |
+| is_local_household | INTEGER | DEFAULT 1 | 是否本村户籍（0/1） |
+| is_household_head | INTEGER | DEFAULT 0 | 是否户主（0/1） |
+| is_local_resident | INTEGER | DEFAULT 1 | 是否本村常住（0/1） |
+| external_address | VARCHAR(200) | | 外地居住地址 |
 | remark | TEXT | | 备注 |
-| creator | VARCHAR(50) | | 录入人 |
-| created_at | DATETIME | | 录入时间 |
-| updated_at | DATETIME | | 更新时间 |
-| deleted | TINYINT | DEFAULT 0 | 软删除 |
+| create_time | TEXT | | 创建时间 |
+| update_time | TEXT | | 更新时间 |
+| deleted | INTEGER | DEFAULT 0 | 软删除 |
+
+**村民附件表 (resident_attachments)**
+
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| id | INTEGER | PK, AUTO | 附件ID |
+| resident_id | INTEGER | NOT NULL, FK | 村民ID |
+| file_name | VARCHAR(200) | NOT NULL | 文件名 |
+| file_path | VARCHAR(500) | NOT NULL | 文件路径 |
+| file_type | VARCHAR(50) | NOT NULL | 文件MIME类型 |
+| file_size | INTEGER | | 文件大小（字节） |
+| file_category | VARCHAR(50) | NOT NULL | 附件分类（id_card/personal_photo/copy/social_security_copy/household_register_copy/other） |
+| create_time | TEXT | | 创建时间 |
+| deleted | INTEGER | DEFAULT 0 | 软删除 |
 
 ### 接口设计
 
@@ -191,6 +275,24 @@
 | 销户登记 | PUT | /api/resident/cancel/{id} | 销户登记 |
 | 人口统计 | POST | /api/resident/statistics | 人口统计 |
 | Excel导出 | POST | /api/resident/export | Excel导出 |
+| 上传附件 | POST | /api/resident/attachment/upload | 上传村民附件 |
+| 获取附件列表 | GET | /api/resident/attachment/list/{residentId} | 获取村民附件列表 |
+| 删除附件 | DELETE | /api/resident/attachment/{id} | 删除附件 |
+
+### 统计接口返回字段
+
+| 字段 | 说明 |
+|------|------|
+| totalCount | 总人口数 |
+| localResidentCount | 常住人口数 |
+| studentCount | 就读学生数 |
+| allowanceCount | 低保人数 |
+| fiveGuaranteeCount | 五保户人数 |
+| nonLocalHouseholdCount | 非本地户籍人数 |
+| householdStatusCount | 户籍状态分布（Map） |
+| personTypeCount | 人员类型分布（Map） |
+| securityTypeCount | 保障类型分布（Map） |
+| villageCount | 村组分布（Map） |
 
 ### 请求参数示例
 
@@ -199,31 +301,35 @@
 {
   "idCard": "320105199001011234",
   "name": "张三",
-  "gender": "男",
+  "gender": "male",
   "birthDate": "1990-01-01",
   "phone": "13812345678",
   "address": "XX村XX组",
-  "maritalStatus": "已婚",
-  "politicalStatus": "群众",
-  "guaranteeType": "社保",
-  "isHead": false,
-  "personType": "群众",
-  "personRole": "普通用户",
+  "personType": "farmer",
+  "securityType": "pension,allowance",
+  "isLocalHousehold": 1,
+  "isHouseholdHead": 1,
+  "isLocalResident": 1,
+  "externalAddress": "",
   "remark": ""
 }
 
 // 条件查询
 {
-  "idCard": "",
   "name": "",
-  "address": "",
+  "idCard": "",
+  "householdStatus": "",
   "personType": "",
-  "guaranteeType": "",
-  "householdStatus": "正常",
-  "deleted": 0,
+  "village": "",
   "pageNum": 1,
-  "pageSize": 10
+  "pageSize": 10,
+  "orderBy": "create_time",
+  "sortOrder": "desc"
 }
+
+// 附件上传
+- Content-Type: multipart/form-data
+- 参数: residentId, file, fileCategory
 ```
 
 ### 业务规则
@@ -231,9 +337,9 @@
 1. 身份证号：18位，全局唯一标识，不可重复
 2. 销户后档案保留历史数据，查询时可识别销户状态
 3. 删除为软删除，标记deleted=1
-4. 保障类型：无/社保/养老/低保/其他
-5. 人员类型：群众/党员/预备党员/在读学生/军人/其他
-6. 人员角色：管理员/普通用户（预留扩展）
+4. 保障类型（多选）：社会养老、职工养老、低保、五保、其他、无
+5. 人员类型：农民、工人、教师、医生、学生、其他
+6. 附件存储：本地固定文件夹，按村民ID分目录存储
 
 ## 验收条件
 
@@ -243,20 +349,24 @@
 - [x] 删除档案，弹窗确认后软删除
 - [x] 销户登记，档案标记销户状态
 - [x] 多条件查询，返回符合条件的列表
-- [x] 人口统计，按条件正确统计
+- [x] 人口统计，按条件正确统计（含ECharts图表）
 - [x] Excel导出，格式正确可下载
 - [x] 分页查询，翻页正常
 - [x] 批量删除，需确认提示
+- [x] 详情抽屉，展示村民基本信息和附件
+- [x] 附件上传，支持分类上传和格式限制
+- [x] 附件预览，图片/PDF预览，其他格式提示下载
+- [x] 全屏预览，支持图片/PDF全屏模式
 
 ## 依赖
 
-- 数据库初始化 (residents表)
-- 回收站模块（删除时调用）
-- 操作日志模块
+- 数据库初始化（residents表、resident_attachments表）
+- 附件存储目录自动创建（D:/village-data/attachments/）
+- ECharts图表库
 
 ## 状态
 
 - [ ] 待开发
 - [ ] 开发中
 - [ ] 待测试
-- [ ] 完成
+- [x] 完成（2026-04-23，含4次功能迭代）

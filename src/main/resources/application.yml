@@ -6,14 +6,20 @@ server:
 spring:
   application:
     name: village-affairs-management
+  main:
+    allow-bean-definition-overriding: true
   datasource:
     driver-class-name: org.sqlite.JDBC
-    url: jdbc:sqlite:${user.dir}/data/village.db
+    url: jdbc:sqlite:D:/village-data/village.db?date_string_format=yyyy-MM-dd%20HH:mm:ss
     hikari:
       maximum-pool-size: 1
       minimum-idle: 0
-  resources:
-    static-locations: classpath:/static/,classpath:/templates/
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+  web:
+    resources:
+      static-locations: classpath:/static/,classpath:/templates/
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
@@ -29,6 +35,11 @@ mybatis-plus:
       logic-not-delete-value: 0
   mapper-locations: classpath*:/mapper/**/*.xml
   type-aliases-package: com.village.entity
+
+# 应用配置
+app:
+  attachment:
+    path: D:/village-data/attachments
 
 logging:
   level:

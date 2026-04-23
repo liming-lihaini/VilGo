@@ -2,8 +2,6 @@ package com.village.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 /**
  * 村民档案实体类
@@ -37,7 +35,7 @@ public class Resident {
     /**
      * 出生日期
      */
-    private LocalDate birthDate;
+    private String birthDate;
 
     /**
      * 户籍状态：normal-正常，cancelled-已销户
@@ -50,7 +48,7 @@ public class Resident {
     private String personType;
 
     /**
-     * 保障类型：pension-养老保险，insurance-医疗保险，allowance-低保，none-未参保
+     * 保障类型（多选）：pension-社会养老, worker_pension-职工养老, allowance-低保, five_guarantee-五保, other-其他, none-无
      */
     private String securityType;
 
@@ -80,6 +78,26 @@ public class Resident {
     private String village;
 
     /**
+     * 是否本村户籍：0-否，1-是
+     */
+    private Integer isLocalHousehold;
+
+    /**
+     * 是否户主：0-否，1-是
+     */
+    private Integer isHouseholdHead;
+
+    /**
+     * 是否本村常住：0-否，1-是
+     */
+    private Integer isLocalResident;
+
+    /**
+     * 外地居住地址
+     */
+    private String externalAddress;
+
+    /**
      * 备注
      */
     private String remark;
@@ -88,13 +106,13 @@ public class Resident {
      * 创建时间
      */
     @TableField(fill = FieldFill.INSERT)
-    private LocalDateTime createTime;
+    private String createTime;
 
     /**
      * 更新时间
      */
     @TableField(fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updateTime;
+    private String updateTime;
 
     /**
      * 软删除标记：0-正常，1-已删除

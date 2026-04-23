@@ -10,13 +10,13 @@ import com.village.dto.ResidentStatisticsDTO;
 import com.village.entity.Resident;
 import com.village.exception.BusinessException;
 import com.village.service.ResidentService;
+import com.village.util.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -44,8 +44,8 @@ public class ResidentServiceImpl implements ResidentService {
         // 转换为实体
         Resident resident = toEntity(dto);
         resident.setHouseholdStatus("normal");
-        resident.setCreateTime(LocalDateTime.now());
-        resident.setUpdateTime(LocalDateTime.now());
+        resident.setCreateTime(DateUtils.now());
+        resident.setUpdateTime(DateUtils.now());
         resident.setDeleted(0);
 
         residentDao.insert(resident);
@@ -87,9 +87,12 @@ public class ResidentServiceImpl implements ResidentService {
         existing.setHouseholdHead(dto.getHouseholdHead());
         existing.setRelationship(dto.getRelationship());
         existing.setVillage(dto.getVillage());
+        existing.setIsLocalHousehold(dto.getIsLocalHousehold());
+        existing.setIsHouseholdHead(dto.getIsHouseholdHead());
+        existing.setIsLocalResident(dto.getIsLocalResident());
+        existing.setExternalAddress(dto.getExternalAddress());
         existing.setRemark(dto.getRemark());
-        existing.setUpdateTime(LocalDateTime.now());
-
+        
         residentDao.updateById(existing);
         log.info("更新村民档案成功，id={}", existing.getId());
         return existing;
@@ -105,7 +108,7 @@ public class ResidentServiceImpl implements ResidentService {
 
         // 软删除
         resident.setDeleted(1);
-        resident.setUpdateTime(LocalDateTime.now());
+    
         residentDao.updateById(resident);
         log.info("删除村民档案成功，id={}", id);
     }
@@ -149,7 +152,6 @@ public class ResidentServiceImpl implements ResidentService {
 
         // 销户登记
         resident.setHouseholdStatus("cancelled");
-        resident.setUpdateTime(LocalDateTime.now());
         residentDao.updateById(resident);
         log.info("销户登记成功，id={}", id);
     }
@@ -164,6 +166,36 @@ public class ResidentServiceImpl implements ResidentService {
         List<Resident> residents = residentDao.selectList(wrapper);
 
         dto.setTotalCount((long) residents.size());
+
+        // 常住人口数（is_local_resident = 1）
+        long localResidentCount = residents.stream()
+                .filter(r -> r.getIsLocalResident() != null && r.getIsLocalResident() == 1)
+                .count();
+        dto.setLocalResidentCount(localResidentCount);
+
+        // 就读学生数（person_type = 'student'）
+        long studentCount = residents.stream()
+                .filter(r -> "student".equals(r.getPersonType()))
+                .count();
+        dto.setStudentCount(studentCount);
+
+        // 低保人数（security_type 包含 'allowance'）
+        long allowanceCount = residents.stream()
+                .filter(r -> StringUtils.hasText(r.getSecurityType()) && r.getSecurityType().contains("allowance"))
+                .count();
+        dto.setAllowanceCount(allowanceCount);
+
+        // 五保户人数（security_type 包含 'five_guarantee'）
+        long fiveGuaranteeCount = residents.stream()
+                .filter(r -> StringUtils.hasText(r.getSecurityType()) && r.getSecurityType().contains("five_guarantee"))
+                .count();
+        dto.setFiveGuaranteeCount(fiveGuaranteeCount);
+
+        // 非本地户籍人数（is_local_household = 0）
+        long nonLocalHouseholdCount = residents.stream()
+                .filter(r -> r.getIsLocalHousehold() != null && r.getIsLocalHousehold() == 0)
+                .count();
+        dto.setNonLocalHouseholdCount(nonLocalHouseholdCount);
 
         // 按户籍状态统计
         Map<String, Long> householdStatusCount = residents.stream()
@@ -256,6 +288,10 @@ public class ResidentServiceImpl implements ResidentService {
         resident.setHouseholdHead(dto.getHouseholdHead());
         resident.setRelationship(dto.getRelationship());
         resident.setVillage(dto.getVillage());
+        resident.setIsLocalHousehold(dto.getIsLocalHousehold());
+        resident.setIsHouseholdHead(dto.getIsHouseholdHead());
+        resident.setIsLocalResident(dto.getIsLocalResident());
+        resident.setExternalAddress(dto.getExternalAddress());
         resident.setRemark(dto.getRemark());
         return resident;
     }

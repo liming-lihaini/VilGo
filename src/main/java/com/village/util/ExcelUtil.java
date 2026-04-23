@@ -2,15 +2,10 @@ package com.village.util;
 
 import com.village.entity.Resident;
 import com.alibaba.excel.EasyExcel;
-import com.alibaba.excel.annotation.ExcelProperty;
-import com.alibaba.excel.converters.Converter;
-import com.alibaba.excel.enums.CellDataTypeEnum;
-import com.alibaba.excel.metadata.CellData;
-import com.alibaba.excel.metadata.GlobalConfiguration;
-import com.alibaba.excel.write.metadata.head.FieldHead;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -36,6 +31,10 @@ public class ExcelUtil {
         head.add(createHead("户主姓名"));
         head.add(createHead("与户主关系"));
         head.add(createHead("所属村组"));
+        head.add(createHead("是否本村户籍"));
+        head.add(createHead("是否户主"));
+        head.add(createHead("是否本村常住"));
+        head.add(createHead("外地居住地址"));
         head.add(createHead("备注"));
         return head;
     }
@@ -55,7 +54,7 @@ public class ExcelUtil {
     public static void writeToResponse(List<Resident> data, javax.servlet.http.HttpServletResponse response) throws Exception {
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setCharacterEncoding("utf-8");
-        String fileName = java.net.URLEncoder.encode("村民档案", "UTF-8");
+        String fileName = URLEncoder.encode("村民档案", StandardCharsets.UTF_8.name());
         response.setHeader("Content-Disposition", "attachment;filename=" + fileName + ".xlsx");
 
         EasyExcel.write(response.getOutputStream())

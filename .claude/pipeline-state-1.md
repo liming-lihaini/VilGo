@@ -88,7 +88,7 @@ Issue 类型: 新功能
 ### 产出文件列表
 后端（13个）:
 - pom.xml: 添加 EasyExcel 依赖
-- src/main/resources/schema.sql: SQLite 建表语句
+- src/main/resources/schema.sql: SQLite 建表语句（含 residents + resident_attachments）
 - src/main/java/com/village/entity/Resident.java: 实体类
 - src/main/java/com/village/dto/ResidentDTO.java: 入参 DTO
 - src/main/java/com/village/dto/ResidentQueryDTO.java: 查询条件 DTO
@@ -104,7 +104,7 @@ Issue 类型: 新功能
 
 前端（5个）:
 - src/main/webapp/src/request/resident.js: API封装
-- src/main/webapp/src/views/resident/ResidentList.vue: 列表页面
+- src/main/webapp/src/views/resident/ResidentList.vue: 列表页面（含附件按钮）
 - src/main/webapp/src/views/resident/ResidentStatistics.vue: 统计页面
 - src/main/webapp/src/router/index.js: 路由配置
 - src/main/webapp/src/components/layout/AppSidebar.vue: 侧边栏菜单
@@ -118,6 +118,39 @@ Issue 类型: 新功能
 状态: ✅
 轮次: 1
 反馈: 实现完成，Review 通过。
+
+## Bug 修复（Pipeline 外）
+
+> 以下为 Pipeline 流程完成后发现的 bug 修复记录
+
+### BUG-1: ExcelUtil.java 未使用的 imports
+- 问题: 存在未使用的 imports，导致 `CellData cannot be resolved`
+- 修复: 清理 7 个未使用的 imports
+- 状态: ✅ 已修复
+
+### BUG-2: application.yml deprecated 配置
+- 问题: `spring.resources.static-locations` 已废弃
+- 修复: 改为 `spring.web.resources.static-locations`
+- 状态: ✅ 已修复
+
+### BUG-3: 数据库路径配置
+- 问题: 原始路径 `${user.dir}/data/village.db` 为相对路径
+- 修复: 改为固定路径 `D:/village-data/village.db`
+- 状态: ✅ 已修复
+
+### BUG-4: 启动时数据库初始化
+- 问题: SQLite 需要手动创建数据库文件
+- 修复: 创建 `DatabaseInitializer.java`，启动时自动创建目录和表
+- 状态: ✅ 已修复
+
+### BUG-5: 目录创建时机
+- 问题: JDBC 连接在目录创建前执行，导致路径不存在
+- 修复: 调整代码顺序，先创建目录再连接数据库
+- 状态: ✅ 已修复
+
+### 修复后产出文件
+- `src/main/java/com/village/config/DatabaseInitializer.java`: 数据库初始化器
+- `src/main/java/com/village/VillageAffairsApplication.java`: 添加 @MapperScan
 
 ## Open Questions
 
@@ -153,5 +186,90 @@ Issue 类型: 新功能
 
 ## Deliver
 
-PR: N/A
+PR: N/A（本地开发）
 创建时间: 2026-04-22
+完成时间: 2026-04-23
+状态: ✅ 完成（含 Pipeline 外 5 个 bug 修复）
+
+## 功能迭代（Pipeline 完成后）
+
+> 以下为 Pipeline deliver 完成后新增的功能需求和实现
+
+### 迭代 1: 村民附件管理
+- **时间**: 2026-04-23
+- **功能描述**: 村民档案附件上传、管理、预览功能
+- **实现内容**:
+  - 后端: ResidentAttachment 实体、DTO、Dao、Service、Controller
+  - 附件存储: 本地固定文件夹 `D:/village-data/attachments/`
+  - 前端: ResidentAttachment.vue 组件（支持身份证照片、个人照片、复印件等分类）
+  - 初始化: 启动时自动创建附件目录
+
+### 迭代 2: 详情抽屉
+- **时间**: 2026-04-23
+- **功能描述**: 点击村民姓名查看详情，右侧抽屉展示档案和附件
+- **实现内容**:
+  - 新增 ResidentDrawer.vue 组件
+  - 基本信息展示（el-descriptions）
+  - 附件信息展示（卡片式网格）
+
+### 迭代 3: 附件管理优化
+- **时间**: 2026-04-23
+- **功能描述**: 附件按类型分类管理，支持图片/PDF预览
+- **实现内容**:
+  - 6种附件分类: 身份证照片、个人照片、身份证复印件、社保卡复印件、户口本复印件、其他
+  - 图片预览（jpg/png/gif等）
+  - PDF预览（内嵌iframe）
+  - 其他格式提示"暂不支持"并提供下载
+  - 全屏预览模式
+
+### 迭代 4: 统计页面升级
+- **时间**: 2026-04-23
+- **功能描述**: 丰富统计指标，采用ECharts图表展示
+- **实现内容**:
+  - 新增统计卡片: 常住人口数、就读学生数、低保人数、五保户人数、非本地户籍人数
+  - ECharts图表: 户籍状态分布(环形图)、人员类型分布(饼图)、保障类型分布(柱状图)、村组分布(柱状图)
+  - 安装 echarts 依赖
+
+### 迭代产出文件
+
+后端新增:
+- `src/main/java/com/village/entity/ResidentAttachment.java`: 附件实体
+- `src/main/java/com/village/dto/ResidentAttachmentDTO.java`: 附件DTO
+- `src/main/java/com/village/dao/ResidentAttachmentDao.java`: 附件DAO
+- `src/main/java/com/village/service/ResidentAttachmentService.java`: 附件服务接口
+- `src/main/java/com/village/service/impl/ResidentAttachmentServiceImpl.java`: 附件服务实现
+- `src/main/java/com/village/controller/ResidentAttachmentController.java`: 附件控制器
+
+前端新增:
+- `src/main/webapp/src/views/resident/ResidentAttachment.vue`: 附件管理弹窗
+- `src/main/webapp/src/views/resident/ResidentDrawer.vue`: 详情抽屉组件
+- `src/main/webapp/package.json`: 添加 echarts 依赖
+
+前端修改:
+- `src/main/webapp/src/views/resident/ResidentList.vue`: 添加详情按钮、附件按钮、抽屉组件
+- `src/main/webapp/src/views/resident/ResidentStatistics.vue`: 统计页面重构，ECharts图表
+- `src/main/webapp/src/router/index.js`: 路由配置（已存在）
+- `src/main/webapp/src/components/layout/AppSidebar.vue`: 添加 :router="true"
+- `src/main/webapp/src/components/layout/AppMain.vue`: 内容区渲染
+- `src/main/webapp/vite.config.js`: 添加 /attachments 代理
+
+配置修改:
+- `src/main/resources/application.yml`: 添加 app.attachment.path
+- `src/main/java/com/village/config/DatabaseConfig.java`: 创建附件目录
+- `src/main/java/com/village/config/WebConfig.java`: 附件静态资源映射
+- `src/main/resources/schema.sql`: 添加 resident_attachments 表
+
+### 统计页面字段映射
+
+| 后端字段 | 前端显示 |
+|---------|---------|
+| totalCount | 总人口数 |
+| localResidentCount | 常住人口数 |
+| studentCount | 就读学生数 |
+| allowanceCount | 低保人数 |
+| fiveGuaranteeCount | 五保户人数 |
+| nonLocalHouseholdCount | 非本地户籍人数 |
+| householdStatusCount | 户籍状态分布（环形图） |
+| personTypeCount | 人员类型分布（饼图） |
+| securityTypeCount | 保障类型分布（柱状图） |
+| villageCount | 村组分布（柱状图） |

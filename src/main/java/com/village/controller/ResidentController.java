@@ -2,12 +2,14 @@ package com.village.controller;
 
 import com.alibaba.excel.EasyExcel;
 import com.village.dto.ResidentDTO;
+import com.village.dto.ResidentImportResultDTO;
 import com.village.dto.ResidentQueryDTO;
 import com.village.dto.ResidentStatisticsDTO;
 import com.village.dto.Result;
 import com.village.entity.Resident;
 import com.village.service.ResidentService;
 import com.village.util.ExcelUtil;
+import com.village.util.ResidentImportListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -128,5 +130,48 @@ public class ResidentController {
                 .head(ExcelUtil.getResidentHead())
                 .sheet()
                 .doWrite(list);
+    }
+
+    /**
+     * Excel导入
+     */
+    @PostMapping("/import")
+    public Result<ResidentImportResultDTO> importExcel(MultipartFile file) throws IOException {
+        log.info("Excel导入");
+
+        ResidentImportResultDTO resultDTO = new ResidentImportResultDTO();
+
+        try {
+            EasyExcel.read(file.getInputStream())
+                    .head(Resident.class)
+                    .registerReadListener(new ResidentImportListener(residentService, resultDTO))
+                    .sheet()
+                    .doRead();
+        } catch (Exception e) {
+            log.error("Excel导入失败", e);
+            return Result.error("导入失败: " + e.getMessage());
+        }
+
+        return Result.success(resultDTO);
+    }
+
+    /**
+     * 下载导入模板
+     */
+    @GetMapping("/import/template")
+    public void downloadTemplate(HttpServletResponse response) throws IOException {
+        log.info("下载导入模板");
+
+        // 设置响应头
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setCharacterEncoding("utf-8");
+        String fileName = URLEncoder.encode("村民档案导入模板", StandardCharsets.UTF_8);
+        response.setHeader("Content-Disposition", "attachment;filename=" + fileName + ".xlsx");
+
+        // 创建模板数据（表头）
+        EasyExcel.write(response.getOutputStream())
+                .head(ExcelUtil.getResidentHead())
+                .sheet()
+                .doWrite(java.util.Collections.emptyList());
     }
 }

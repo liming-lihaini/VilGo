@@ -415,3 +415,50 @@ QR-3 下游可用性 | 合规: 代码可直接部署运行
 
 - 子 agent 的 plan 阶段使用通用知识（未创建 stages/plan.md），需确认是否存在 stages/ 目录
 - implement 阶段未使用子 agent，由 deliver agent 直接执行，需确认是否符合 pipeline 规范
+
+
+---
+
+## Bug 修复 | 2026-04-23 | ✅ 完成
+
+> Pipeline 流程结束后发现的 bug 修复记录
+
+### 输入
+
+- 问题来源: 开发调试过程中发现
+- 修复范围: 5 个 bug
+
+### 过程
+
+- BUG-1: 清理 ExcelUtil.java 未使用的 imports（7 个）
+- BUG-2: 修改 application.yml deprecated 配置
+- BUG-3: 数据库路径改为固定位置 D:/village-data/village.db
+- BUG-4: 创建 DatabaseInitializer.java 实现启动时数据库初始化
+- BUG-5: 调整目录创建时机，先创建目录再连接数据库
+
+### 输出
+
+- 修复文件:
+  - src/main/java/com/village/util/ExcelUtil.java
+  - src/main/resources/application.yml
+  - src/main/java/com/village/config/DatabaseInitializer.java（新增）
+  - src/main/java/com/village/VillageAffairsApplication.java
+- State 变更:
+  - pipeline-state-1.md 新增 Bug 修复 section
+
+### 验证
+
+#### 轨道 A：流程合规
+SR-0 流程遵循 | 合规: 遵循 bug 修复流程
+SR-1 ~ SR-8 | N/A: 非 Pipeline 阶段
+
+#### 轨道 B：产出质量
+QR-0 决策一致性 | 合规: 修复不影响原有设计决策
+QR-1 边界合规 | 合规: 严格在 Issue 范围内
+QR-2 验收可验证 | 合规: 所有 bug 均已修复
+QR-3 下游可用性 | 合规: 代码可正常编译运行
+
+### 观察
+
+- 发现: 5 个 bug 均为开发环境配置问题，不涉及业务逻辑
+- 异常: 无

@@ -87,5 +87,70 @@ export const residentApi = {
       data: params,
       responseType: 'blob'
     })
+  },
+
+  /**
+   * Excel导入
+   */
+  import(file) {
+    const formData = new FormData()
+    formData.append('file', file)
+    return request({
+      url: '/resident/import',
+      method: 'post',
+      data: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+  },
+
+  /**
+   * 下载导入模板
+   */
+  downloadTemplate() {
+    return request({
+      url: '/resident/import/template',
+      method: 'get',
+      responseType: 'blob'
+    })
+  },
+
+  /**
+   * 上传附件
+   */
+  uploadAttachment(residentId, file, fileCategory) {
+    const formData = new FormData()
+    formData.append('residentId', residentId)
+    formData.append('file', file)
+    formData.append('fileCategory', fileCategory)
+    return request({
+      url: '/resident/attachment/upload',
+      method: 'post',
+      data: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+  },
+
+  /**
+   * 获取附件列表
+   */
+  getAttachments(residentId) {
+    return request({
+      url: `/resident/attachment/list/${residentId}`,
+      method: 'get'
+    })
+  },
+
+  /**
+   * 删除附件
+   */
+  deleteAttachment(id) {
+    return request({
+      url: `/resident/attachment/${id}`,
+      method: 'delete'
+    })
   }
 }

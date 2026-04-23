@@ -2,8 +2,6 @@ package com.village.dto;
 
 import lombok.Data;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import java.time.LocalDate;
 
 /**
  * 村民档案新增/编辑入参 DTO
@@ -36,7 +34,7 @@ public class ResidentDTO {
     /**
      * 出生日期
      */
-    private LocalDate birthDate;
+    private String birthDate;
 
     /**
      * 户籍状态：normal-正常，cancelled-已销户
@@ -49,7 +47,7 @@ public class ResidentDTO {
     private String personType;
 
     /**
-     * 保障类型：pension-养老保险，insurance-医疗保险，allowance-低保，none-未参保
+     * 保障类型（多选）：pension-社会养老, worker_pension-职工养老, allowance-低保, five_guarantee-五保, other-其他, none-无
      */
     private String securityType;
 
@@ -77,6 +75,26 @@ public class ResidentDTO {
      * 所属村组
      */
     private String village;
+
+    /**
+     * 是否本村户籍：0-否，1-是
+     */
+    private Integer isLocalHousehold;
+
+    /**
+     * 是否户主：0-否，1-是
+     */
+    private Integer isHouseholdHead;
+
+    /**
+     * 是否本村常住：0-否，1-是
+     */
+    private Integer isLocalResident;
+
+    /**
+     * 外地居住地址
+     */
+    private String externalAddress;
 
     /**
      * 备注
