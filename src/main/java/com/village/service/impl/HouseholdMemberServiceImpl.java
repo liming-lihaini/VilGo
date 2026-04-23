@@ -1,9 +1,12 @@
 package com.village.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.village.dao.HouseholdDao;
 import com.village.dao.HouseholdMemberDao;
 import com.village.dao.ResidentDao;
 import com.village.dto.HouseholdMemberDTO;
+import com.village.dto.HouseholdMemberDetailDTO;
+import com.village.entity.Household;
 import com.village.entity.HouseholdMember;
 import com.village.entity.Resident;
 import com.village.exception.BusinessException;
@@ -15,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 家庭成员服务实现类
@@ -25,17 +30,16 @@ import java.util.List;
 public class HouseholdMemberServiceImpl implements HouseholdMemberService {
 
     private final HouseholdMemberDao householdMemberDao;
+    private final HouseholdDao householdDao;
     private final ResidentDao residentDao;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public HouseholdMember addMember(HouseholdMemberDTO dto) {
-        // 校验家庭户存在
         if (dto.getHouseholdId() == null) {
             throw new BusinessException("家庭户ID不能为空");
         }
 
-        // 校验村民存在
         if (dto.getResidentId() == null) {
             throw new BusinessException("村民ID不能为空");
         }
@@ -44,7 +48,6 @@ public class HouseholdMemberServiceImpl implements HouseholdMemberService {
             throw new BusinessException("村民档案不存在");
         }
 
-        // 校验该村民是否已是其他家庭户成员
         int count = householdMemberDao.countByResidentIdExcludeHousehold(dto.getResidentId(), dto.getHouseholdId());
         if (count > 0) {
             throw new BusinessException("该村民已是其他家庭户成员");
@@ -58,6 +61,10 @@ public class HouseholdMemberServiceImpl implements HouseholdMemberService {
         member.setDeleted(0);
 
         householdMemberDao.insert(member);
+
+        // 更新家庭户成员数量
+        updateMemberCount(dto.getHouseholdId());
+
         log.info("添加家庭成员成功，id={}, householdId={}, residentId={}", member.getId(), member.getHouseholdId(), member.getResidentId());
         return member;
     }
@@ -69,29 +76,76 @@ public class HouseholdMemberServiceImpl implements HouseholdMemberService {
         if (member == null) {
             throw new BusinessException("记录不存在");
         }
+        Long householdId = member.getHouseholdId();
 
-        member.setDeleted(1);
-        householdMemberDao.updateById(member);
+        // 标记删除
+        householdMemberDao.deleteById(id);
+
+        // 更新家庭户成员数量
+        updateMemberCount(householdId);
+
         log.info("移除家庭成员成功，id={}", id);
     }
 
+    /**
+     * 更新家庭户成员数量
+     */
+    private void updateMemberCount(Long householdId) {
+        if (householdId == null) return;
+
+        LambdaQueryWrapper<HouseholdMember> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(HouseholdMember::getHouseholdId, householdId)
+               .eq(HouseholdMember::getDeleted, 0);
+        long count = householdMemberDao.selectCount(wrapper);
+
+        LambdaQueryWrapper<Household> householdWrapper = new LambdaQueryWrapper<>();
+        householdWrapper.eq(Household::getId, householdId);
+        Household household = new Household();
+        household.setMemberCount((int) count);
+        householdDao.update(household, householdWrapper);
+    }
+
     @Override
-    public List<Resident> getMembersByHouseholdId(Long householdId) {
-        List<HouseholdMember> members = householdMemberDao.selectByHouseholdId(householdId);
-        if (members.isEmpty()) {
+    public List<HouseholdMemberDetailDTO> getMembersByHouseholdId(Long householdId) {
+        List<HouseholdMember> memberRelations = householdMemberDao.selectByHouseholdId(householdId);
+        if (memberRelations.isEmpty()) {
             return List.of();
         }
 
         // 查询成员详细信息
-        List<Long> residentIds = members.stream()
+        List<Long> residentIds = memberRelations.stream()
                 .map(HouseholdMember::getResidentId)
-                .collect(java.util.stream.Collectors.toList());
+                .collect(Collectors.toList());
 
         LambdaQueryWrapper<Resident> wrapper = new LambdaQueryWrapper<>();
         wrapper.in(Resident::getId, residentIds);
         wrapper.eq(Resident::getDeleted, 0);
 
-        return residentDao.selectList(wrapper);
+        List<Resident> residents = residentDao.selectList(wrapper);
+
+        // 构建 residentId -> Resident 映射
+        Map<Long, Resident> residentMap = residents.stream()
+                .collect(Collectors.toMap(Resident::getId, r -> r));
+
+        // 组装结果，包含关系信息
+        return memberRelations.stream()
+                .map(m -> {
+                    HouseholdMemberDetailDTO dto = new HouseholdMemberDetailDTO();
+                    dto.setId(m.getId());
+                    dto.setResidentId(m.getResidentId());
+                    dto.setRelation(m.getRelation());
+
+                    Resident r = residentMap.get(m.getResidentId());
+                    if (r != null) {
+                        dto.setName(r.getName());
+                        dto.setIdCard(r.getIdCard());
+                        dto.setGender(r.getGender());
+                        dto.setPhone(r.getPhone());
+                        dto.setAddress(r.getAddress());
+                    }
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 
     @Override

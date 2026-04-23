@@ -1,6 +1,7 @@
 package com.village.util;
 
 import com.village.entity.Resident;
+import com.village.entity.SpecialGroup;
 import com.alibaba.excel.EasyExcel;
 
 import java.net.URLEncoder;
@@ -36,6 +37,26 @@ public class ExcelUtil {
         head.add(createHead("是否本村常住"));
         head.add(createHead("外地居住地址"));
         head.add(createHead("备注"));
+        return head;
+    }
+
+    /**
+     * 获取特殊人群表头
+     */
+    public static List<List<String>> getSpecialGroupHead() {
+        List<List<String>> head = new ArrayList<>();
+        head.add(createHead("姓名"));
+        head.add(createHead("身份证号"));
+        head.add(createHead("性别"));
+        head.add(createHead("出生日期"));
+        head.add(createHead("联系电话"));
+        head.add(createHead("住址"));
+        head.add(createHead("人群类型"));
+        head.add(createHead("帮扶责任人"));
+        head.add(createHead("帮扶措施"));
+        head.add(createHead("帮扶时间"));
+        head.add(createHead("帮扶成效"));
+        head.add(createHead("帮扶状态"));
         return head;
     }
 

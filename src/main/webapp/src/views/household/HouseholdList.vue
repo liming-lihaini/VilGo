@@ -4,16 +4,13 @@
     <div class="filter-bar">
       <el-form :inline="true" :model="queryForm" class="query-form">
         <el-form-item label="家庭户编号" style="width: 180px">
-          <el-input v-model="queryForm.householdNo" placeholder="请输入家庭户编号" clearable @keyup.enter="handleQuery" />
+          <el-input v-model="queryForm.householdNo" placeholder="编号" clearable @keyup.enter="handleQuery" />
         </el-form-item>
-        <el-form-item label="户主姓名" style="width: 150px">
-          <el-input v-model="queryForm.headName" placeholder="请输入户主姓名" clearable @keyup.enter="handleQuery" />
+        <el-form-item label="户主姓名" style="width: 200px">
+          <el-input v-model="queryForm.headName" placeholder="姓名" clearable @keyup.enter="handleQuery" />
         </el-form-item>
-        <el-form-item label="户主身份证号" style="width: 200px">
-          <el-input v-model="queryForm.headIdCard" placeholder="请输入身份证号" clearable @keyup.enter="handleQuery" />
-        </el-form-item>
-        <el-form-item label="住址" style="width: 200px">
-          <el-input v-model="queryForm.address" placeholder="请输入住址" clearable @keyup.enter="handleQuery" />
+        <el-form-item label="身份证号" style="width: 200px">
+          <el-input v-model="queryForm.headIdCard" placeholder="身份证号" clearable @keyup.enter="handleQuery" />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleQuery">查询</el-button>
@@ -24,7 +21,6 @@
 
     <!-- 操作栏 -->
     <div class="toolbar">
-      <el-button type="primary" @click="handleAdd">新增家庭户</el-button>
       <el-button type="success" @click="handleSync">从村民档案同步</el-button>
     </div>
 
@@ -42,12 +38,16 @@
       <el-table-column prop="headName" label="户主姓名" width="100" />
       <el-table-column prop="headIdCard" label="户主身份证号" width="180" />
       <el-table-column prop="phone" label="联系电话" width="120" />
-      <el-table-column prop="address" label="住址" min-width="180" show-overflow-tooltip />
+      <el-table-column prop="address" label="家庭住址" min-width="180" show-overflow-tooltip />
       <el-table-column prop="memberCount" label="成员人数" width="90" align="center" />
-      <el-table-column prop="createTime" label="创建时间" width="160" />
+      <el-table-column prop="createTime" label="创建时间" width="160">
+        <template #default="{ row }">
+          {{ formatDate(row.createTime) }}
+        </template>
+      </el-table-column>
       <el-table-column label="操作" width="180" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" size="small" @click.stop="handleEdit(row)">编辑</el-button>
+          <el-button link type="primary" size="small" @click.stop="handleRowClick(row)">详情</el-button>
           <el-button link type="danger" size="small" @click.stop="handleDelete(row)">删除</el-button>
         </template>
       </el-table-column>
@@ -70,18 +70,18 @@
     <el-drawer
       v-model="drawerVisible"
       title="家庭户详情"
-      size="600px"
+      size="800px"
       direction="rtl"
     >
       <div v-if="currentHousehold" class="household-detail">
         <el-descriptions :column="2" border>
           <el-descriptions-item label="家庭户编号">{{ currentHousehold.householdNo }}</el-descriptions-item>
           <el-descriptions-item label="户主姓名">{{ currentHousehold.headName }}</el-descriptions-item>
-          <el-descriptions-item label="户主身份证号">{{ currentHousehold.headIdCard }}</el-descriptions-item>
+          <el-descriptions-item label="身份证号">{{ currentHousehold.headIdCard }}</el-descriptions-item>
           <el-descriptions-item label="联系电话">{{ currentHousehold.phone }}</el-descriptions-item>
-          <el-descriptions-item label="住址" :span="2">{{ currentHousehold.address }}</el-descriptions-item>
+          <el-descriptions-item label="户籍住址" :span="2">{{ currentHousehold.address }}</el-descriptions-item>
           <el-descriptions-item label="成员人数">{{ currentHousehold.memberCount }}</el-descriptions-item>
-          <el-descriptions-item label="创建时间">{{ currentHousehold.createTime }}</el-descriptions-item>
+          <el-descriptions-item label="创建时间">{{ formatDate(currentHousehold.createTime) }}</el-descriptions-item>
         </el-descriptions>
 
         <el-tabs v-model="activeTab" class="detail-tabs">
@@ -91,15 +91,15 @@
             </div>
             <el-table :data="members" stripe border size="small" max-height="300">
               <el-table-column prop="name" label="姓名" width="100" />
-              <el-table-column prop="idCard" label="身份证号" width="170" />
-              <el-table-column prop="gender" label="性别" width="60">
+              <el-table-column prop="idCard" label="身份证号"  />
+              <el-table-column prop="gender" label="性别" width="60" align="center">
                 <template #default="{ row }">
                   {{ row.gender === 'male' ? '男' : row.gender === 'female' ? '女' : '-' }}
                 </template>
               </el-table-column>
-              <el-table-column prop="relationship" label="与户主关系" width="100" />
+              <el-table-column prop="relation" label="与户主关系" width="100" align="center"/>
               <el-table-column prop="phone" label="联系电话" width="120" />
-              <el-table-column label="操作" width="80">
+              <el-table-column label="操作" width="80" fixed="right">
                 <template #default="{ row }">
                   <el-button link type="danger" size="small" @click="handleRemoveMember(row)">移除</el-button>
                 </template>
@@ -123,9 +123,9 @@
                   {{ row.perCapitaIncome ? row.perCapitaIncome.toLocaleString() : '-' }}
                 </template>
               </el-table-column>
-              <el-table-column prop="incomeSource" label="收入来源" min-width="120" show-overflow-tooltip />
+              <el-table-column prop="incomeSource" label="收入来源" min-width="120" />
               <el-table-column prop="remark" label="备注" min-width="100" show-overflow-tooltip />
-              <el-table-column label="操作" width="80">
+              <el-table-column label="操作" width="80" fixed="right">
                 <template #default="{ row }">
                   <el-button link type="danger" size="small" @click="handleDeleteIncome(row)">删除</el-button>
                 </template>
@@ -145,12 +145,16 @@
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="changeTime" label="变动时间" width="120" />
+              <el-table-column prop="changeTime" label="变动时间" width="120">
+                <template #default="{ row }">
+                  {{ formatDate(row.changeTime) }}
+                </template>
+              </el-table-column>
               <el-table-column prop="changeReason" label="变动原因" min-width="120" show-overflow-tooltip />
               <el-table-column prop="relatedPersons" label="相关人员" min-width="100" show-overflow-tooltip />
               <el-table-column prop="beforeStatus" label="变动前" width="100" />
               <el-table-column prop="afterStatus" label="变动后" width="100" />
-              <el-table-column label="操作" width="80">
+              <el-table-column label="操作" width="80" fixed="right">
                 <template #default="{ row }">
                   <el-button link type="danger" size="small" @click="handleDeleteChange(row)">删除</el-button>
                 </template>
@@ -209,6 +213,12 @@
             <el-option label="配偶" value="配偶" />
             <el-option label="子女" value="子女" />
             <el-option label="父母" value="父母" />
+            <el-option label="儿媳" value="儿媳" />
+            <el-option label="女婿" value="女婿" />
+            <el-option label="孙子" value="孙子" />
+            <el-option label="孙女" value="孙女" />
+            <el-option label="外孙" value="外孙" />
+            <el-option label="外孙女" value="外孙女" />
             <el-option label="兄弟姐妹" value="兄弟姐妹" />
             <el-option label="其他" value="其他" />
           </el-select>
@@ -378,8 +388,8 @@ const handleQuery = async () => {
   loading.value = true
   try {
     const res = await householdApi.list(queryForm)
-    tableData.value = res.data.list || []
-    total.value = res.data.total || 0
+    tableData.value = res.list || []
+    total.value = res.total || 0
   } catch (e) {
     ElMessage.error(e.message || '查询失败')
   } finally {
@@ -473,10 +483,10 @@ const handleRowClick = async (row) => {
 const loadDetailData = async (householdId) => {
   try {
     const res = await householdApi.detail(householdId)
-    currentHousehold.value = { ...currentHousehold.value, ...res.data.household }
-    members.value = res.data.members || []
-    incomes.value = res.data.incomes || []
-    changes.value = res.data.changes || []
+    currentHousehold.value = { ...currentHousehold.value, ...res.household }
+    members.value = res.members || []
+    incomes.value = res.incomes || []
+    changes.value = res.changes || []
   } catch (e) {
     ElMessage.error(e.message || '加载详情失败')
   }
@@ -488,7 +498,7 @@ const handleAddMember = async () => {
   memberForm.relation = ''
   try {
     const res = await residentApi.list({ pageNum: 1, pageSize: 1000 })
-    residentOptions.value = res.data.list || []
+    residentOptions.value = res.list || []
   } catch (e) {
     ElMessage.error('加载村民列表失败')
   }
@@ -603,6 +613,11 @@ const getChangeTypeName = (type) => {
 const getChangeTypeTag = (type) => {
   const map = { move_in: 'success', move_out: 'warning', newborn: 'info', split: 'danger', merge: 'success' }
   return map[type] || 'info'
+}
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return '-'
+  return dateStr.substring(0, 10);
 }
 </script>
 

@@ -80,8 +80,8 @@ public class HouseholdIncomeServiceImpl implements HouseholdIncomeService {
             throw new BusinessException("记录不存在");
         }
 
-        income.setDeleted(1);
-        householdIncomeDao.updateById(income);
+        // 使用 wrapper 方式更新，避免被 @TableLogic 拦截
+        householdIncomeDao.deleteById(id);
         log.info("删除年度收入成功，id={}", id);
     }
 

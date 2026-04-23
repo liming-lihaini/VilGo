@@ -1,5 +1,6 @@
 package com.village.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.village.dao.HouseholdChangeDao;
 import com.village.dto.HouseholdChangeDTO;
 import com.village.entity.HouseholdChange;
@@ -58,8 +59,8 @@ public class HouseholdChangeServiceImpl implements HouseholdChangeService {
             throw new BusinessException("记录不存在");
         }
 
-        change.setDeleted(1);
-        householdChangeDao.updateById(change);
+        // 使用 wrapper 方式更新，避免被 @TableLogic 拦截
+        householdChangeDao.deleteById(id);
         log.info("删除户籍变动记录成功，id={}", id);
     }
 

@@ -1,8 +1,8 @@
 package com.village.service;
 
 import com.village.dto.HouseholdMemberDTO;
+import com.village.dto.HouseholdMemberDetailDTO;
 import com.village.entity.HouseholdMember;
-import com.village.entity.Resident;
 import java.util.List;
 
 /**
@@ -21,9 +21,9 @@ public interface HouseholdMemberService {
     void removeMember(Long id);
 
     /**
-     * 获取家庭成员列表（包含村民详细信息）
+     * 获取家庭成员列表（包含村民详细信息和与户主关系）
      */
-    List<Resident> getMembersByHouseholdId(Long householdId);
+    List<HouseholdMemberDetailDTO> getMembersByHouseholdId(Long householdId);
 
     /**
      * 批量添加家庭成员

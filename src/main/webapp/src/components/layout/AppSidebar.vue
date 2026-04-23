@@ -27,8 +27,7 @@
           <el-icon><House /></el-icon>
           <span>户籍档案</span>
         </template>
-        <el-menu-item index="/household">家庭户</el-menu-item>
-        <el-menu-item index="/household/change">户籍变动</el-menu-item>
+        <el-menu-item index="/household">户籍信息</el-menu-item>
       </el-sub-menu>
 
       <!-- 特殊人群 -->

@@ -6,6 +6,10 @@ server:
 spring:
   application:
     name: village-affairs-management
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
   main:
     allow-bean-definition-overriding: true
   datasource:
@@ -40,6 +44,7 @@ mybatis-plus:
 app:
   attachment:
     path: D:/village-data/attachments
+    max-size: 50MB
 
 logging:
   level:

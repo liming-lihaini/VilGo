@@ -44,4 +44,9 @@ public class HouseholdDTO {
      * 联系电话
      */
     private String phone;
+
+    /**
+     * 成员人数
+     */
+    private Integer memberCount;
 }

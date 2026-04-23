@@ -106,10 +106,12 @@ public class ResidentServiceImpl implements ResidentService {
             throw new BusinessException("记录不存在");
         }
 
-        // 软删除
-        resident.setDeleted(1);
-    
-        residentDao.updateById(resident);
+        // 使用 wrapper 方式更新，避免被 @TableLogic 拦截
+        LambdaQueryWrapper<Resident> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Resident::getId, id);
+        Resident update = new Resident();
+        update.setDeleted(1);
+        residentDao.update(update, wrapper);
         log.info("删除村民档案成功，id={}", id);
     }
 

@@ -111,8 +111,8 @@ public class HouseholdServiceImpl implements HouseholdService {
             throw new BusinessException("记录不存在");
         }
 
-        household.setDeleted(1);
-        householdDao.updateById(household);
+        // 使用 wrapper 方式更新，避免被 @TableLogic 拦截
+        householdDao.deleteById(id);
         log.info("删除家庭户成功，id={}", id);
     }
 
@@ -130,8 +130,8 @@ public class HouseholdServiceImpl implements HouseholdService {
         detail.setHousehold(householdDTO);
 
         // 成员列表
-        List<Resident> members = householdMemberService.getMembersByHouseholdId(id);
-        detail.setMembers(members.stream().map(this::toResidentDTO).collect(java.util.stream.Collectors.toList()));
+        List<com.village.dto.HouseholdMemberDetailDTO> members = householdMemberService.getMembersByHouseholdId(id);
+        detail.setMembers(members);
 
         // 收入记录
         List<HouseholdIncome> incomes = householdIncomeService.listByHouseholdId(id);
@@ -248,6 +248,7 @@ public class HouseholdServiceImpl implements HouseholdService {
         dto.setHeadIdCard(household.getHeadIdCard());
         dto.setAddress(household.getAddress());
         dto.setPhone(household.getPhone());
+        dto.setMemberCount(household.getMemberCount());
         return dto;
     }
 

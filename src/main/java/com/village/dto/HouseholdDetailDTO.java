@@ -16,7 +16,7 @@ public class HouseholdDetailDTO {
     /**
      * 成员列表
      */
-    private java.util.List<ResidentDTO> members;
+    private java.util.List<HouseholdMemberDetailDTO> members;
 
     /**
      * 收入记录列表

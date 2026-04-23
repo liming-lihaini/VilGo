@@ -116,3 +116,49 @@ CREATE TABLE IF NOT EXISTS household_changes (
 
 CREATE INDEX IF NOT EXISTS idx_changes_household ON household_changes(household_id);
 CREATE INDEX IF NOT EXISTS idx_changes_type ON household_changes(change_type);
+
+-- 特殊人群表
+CREATE TABLE IF NOT EXISTS special_groups (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    resident_id INTEGER,
+    id_card VARCHAR(18) NOT NULL,
+    name VARCHAR(50),
+    gender VARCHAR(10),
+    birth_date DATE,
+    phone VARCHAR(20),
+    address VARCHAR(200),
+    group_type VARCHAR(20) NOT NULL,
+    helper_id INTEGER,
+    helper_name VARCHAR(50),
+    help_content TEXT,
+    help_time TEXT,
+    help_result TEXT,
+    help_status VARCHAR(20) DEFAULT 'ongoing',
+    creator VARCHAR(50),
+    create_time TEXT,
+    update_time TEXT,
+    deleted INTEGER DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS idx_special_groups_id_card ON special_groups(id_card);
+CREATE INDEX IF NOT EXISTS idx_special_groups_group_type ON special_groups(group_type);
+CREATE INDEX IF NOT EXISTS idx_special_groups_helper ON special_groups(helper_id);
+CREATE INDEX IF NOT EXISTS idx_special_groups_deleted ON special_groups(deleted);
+
+-- 帮扶记录表
+CREATE TABLE IF NOT EXISTS help_records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    special_group_id INTEGER NOT NULL,
+    help_content TEXT,
+    help_time TEXT,
+    help_result TEXT,
+    creator VARCHAR(50),
+    create_time TEXT,
+    update_time TEXT,
+    deleted INTEGER DEFAULT 0,
+    FOREIGN KEY (special_group_id) REFERENCES special_groups(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_help_records_group ON help_records(special_group_id);
+CREATE INDEX IF NOT EXISTS idx_help_records_time ON help_records(help_time);
+CREATE INDEX IF NOT EXISTS idx_help_records_deleted ON help_records(deleted);

@@ -133,9 +133,9 @@ public class HouseholdController {
      * 获取家庭成员列表
      */
     @GetMapping("/members/{householdId}")
-    public Result<List<Resident>> getMembers(@PathVariable Long householdId) {
+    public Result<List<HouseholdMemberDetailDTO>> getMembers(@PathVariable Long householdId) {
         log.info("获取家庭成员列表，householdId={}", householdId);
-        List<Resident> members = householdMemberService.getMembersByHouseholdId(householdId);
+        List<HouseholdMemberDetailDTO> members = householdMemberService.getMembersByHouseholdId(householdId);
         return Result.success(members);
     }
 
