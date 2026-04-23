@@ -350,3 +350,12 @@ POST /api/household/change/add
 - [ ] 开发中
 - [ ] 待测试
 - [x] 完成
+
+---
+
+## 元数据
+
+- status: closed
+- closed: 2026-04-23
+- PR: 直接提交到 main（未创建 PR）
+- commit: 24fd87b
