@@ -39,6 +39,16 @@
         <el-menu-item index="/special-group">特殊人群管理</el-menu-item>
       </el-sub-menu>
 
+      <!-- 两委班子 -->
+      <el-sub-menu index="two-committee">
+        <template #title>
+          <el-icon><Collection /></el-icon>
+          <span>两委班子</span>
+        </template>
+        <el-menu-item index="/two-committee">成员管理</el-menu-item>
+        <el-menu-item index="/two-committee/position">职位管理</el-menu-item>
+      </el-sub-menu>
+
       <!-- 党务管理 -->
       <el-sub-menu index="party-work">
         <template #title>
@@ -93,7 +103,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { DArrowLeft, DArrowRight, User, House, UserFilled, Avatar, TrendCharts, Star, Bell, Document, DataBoard } from '@element-plus/icons-vue'
+import { DArrowLeft, DArrowRight, User, House, UserFilled, Avatar, TrendCharts, Star, Bell, Document, DataBoard, Collection } from '@element-plus/icons-vue'
 import logoImage from '@/assets/images/logo-1.png'
 
 const route = useRoute()

@@ -162,3 +162,74 @@ CREATE TABLE IF NOT EXISTS help_records (
 CREATE INDEX IF NOT EXISTS idx_help_records_group ON help_records(special_group_id);
 CREATE INDEX IF NOT EXISTS idx_help_records_time ON help_records(help_time);
 CREATE INDEX IF NOT EXISTS idx_help_records_deleted ON help_records(deleted);
+
+-- 职位管理表
+CREATE TABLE IF NOT EXISTS positions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(50) NOT NULL,
+    code VARCHAR(50),
+    sort_order INTEGER DEFAULT 0,
+    create_time VARCHAR(50),
+    update_time VARCHAR(50),
+    deleted INTEGER DEFAULT 0
+);
+
+-- 两委班子成员表
+CREATE TABLE IF NOT EXISTS two_committee (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    resident_id INTEGER,
+    name VARCHAR(50) NOT NULL,
+    gender VARCHAR(10),
+    position_ids VARCHAR(200),
+    position_names VARCHAR(200),
+    phone VARCHAR(20),
+    divided_work VARCHAR(100),
+    join_date VARCHAR(20),
+    creator VARCHAR(50),
+    create_time VARCHAR(50),
+    update_time VARCHAR(50),
+    deleted INTEGER DEFAULT 0,
+    FOREIGN KEY (resident_id) REFERENCES residents(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_two_committee_resident ON two_committee(resident_id);
+CREATE INDEX IF NOT EXISTS idx_two_committee_name ON two_committee(name);
+CREATE INDEX IF NOT EXISTS idx_two_committee_deleted ON two_committee(deleted);
+
+-- 任务表
+CREATE TABLE IF NOT EXISTS tasks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    year INTEGER,
+    assigner VARCHAR(50),
+    assignee_id INTEGER,
+    content TEXT,
+    deadline VARCHAR(20),
+    status VARCHAR(20) DEFAULT 'pending',
+    result TEXT,
+    create_time VARCHAR(50),
+    update_time VARCHAR(50),
+    deleted INTEGER DEFAULT 0,
+    FOREIGN KEY (assignee_id) REFERENCES two_committee(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_tasks_assignee ON tasks(assignee_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
+CREATE INDEX IF NOT EXISTS idx_tasks_deadline ON tasks(deadline);
+CREATE INDEX IF NOT EXISTS idx_tasks_deleted ON tasks(deleted);
+
+-- 会议记录表
+CREATE TABLE IF NOT EXISTS meetings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    meeting_time VARCHAR(50),
+    location VARCHAR(200),
+    attendees VARCHAR(500),
+    content TEXT,
+    resolution TEXT,
+    implementation TEXT,
+    creator VARCHAR(50),
+    create_time VARCHAR(50),
+    deleted INTEGER DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS idx_meetings_time ON meetings(meeting_time);
+CREATE INDEX IF NOT EXISTS idx_meetings_deleted ON meetings(deleted);

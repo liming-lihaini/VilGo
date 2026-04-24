@@ -43,6 +43,11 @@ const routes = [
         component: () => import('../views/twoCommittee/TwoCommitteeList.vue')
       },
       {
+        path: '/two-committee/position',
+        name: 'TwoCommitteePosition',
+        component: () => import('../views/twoCommittee/PositionList.vue')
+      },
+      {
         path: '/public-activity',
         name: 'PublicActivity',
         component: () => import('../views/publicActivity/PublicActivityList.vue')
