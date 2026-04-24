@@ -135,9 +135,6 @@ public class TwoCommitteeServiceImpl implements TwoCommitteeService {
         if (StringUtils.hasText(dto.getName())) {
             wrapper.like(TwoCommittee::getName, dto.getName());
         }
-        if (StringUtils.hasText(dto.getPosition())) {
-            wrapper.eq(TwoCommittee::getPosition, dto.getPosition());
-        }
 
         wrapper.orderByDesc(TwoCommittee::getCreateTime);
 
@@ -156,12 +153,10 @@ public class TwoCommitteeServiceImpl implements TwoCommitteeService {
 
         LambdaQueryWrapper<TwoCommittee> wrapper1 = new LambdaQueryWrapper<>();
         wrapper1.eq(TwoCommittee::getDeleted, 0);
-        wrapper1.eq(TwoCommittee::getPosition, "书记");
         stats.put("secretary", twoCommitteeDao.selectCount(wrapper1));
 
         LambdaQueryWrapper<TwoCommittee> wrapper2 = new LambdaQueryWrapper<>();
         wrapper2.eq(TwoCommittee::getDeleted, 0);
-        wrapper2.eq(TwoCommittee::getPosition, "主任");
         stats.put("director", twoCommitteeDao.selectCount(wrapper2));
 
         return stats;

@@ -217,6 +217,52 @@ CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
 CREATE INDEX IF NOT EXISTS idx_tasks_deadline ON tasks(deadline);
 CREATE INDEX IF NOT EXISTS idx_tasks_deleted ON tasks(deleted);
 
+-- 公益活动表
+CREATE TABLE IF NOT EXISTS public_activities (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(100) NOT NULL,
+    activity_type VARCHAR(50),
+    start_time VARCHAR(50) NOT NULL,
+    end_time VARCHAR(50) NOT NULL,
+    location VARCHAR(200),
+    content TEXT,
+    requirement TEXT,
+    status VARCHAR(20) DEFAULT 'pending',
+    summary TEXT,
+    creator VARCHAR(50),
+    create_time VARCHAR(50),
+    update_time VARCHAR(50),
+    deleted INTEGER DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS idx_activities_name ON public_activities(name);
+CREATE INDEX IF NOT EXISTS idx_activities_start_time ON public_activities(start_time);
+CREATE INDEX IF NOT EXISTS idx_activities_status ON public_activities(status);
+CREATE INDEX IF NOT EXISTS idx_activities_deleted ON public_activities(deleted);
+
+-- 活动报名表
+CREATE TABLE IF NOT EXISTS activity_signups (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    activity_id INTEGER NOT NULL,
+    resident_id INTEGER NOT NULL,
+    status VARCHAR(20) DEFAULT 'registered',
+    sign_in_time VARCHAR(50),
+    work_hours DECIMAL(5,1),
+    work_value DECIMAL(10,2),
+    remark VARCHAR(500),
+    creator VARCHAR(50),
+    create_time VARCHAR(50),
+    update_time VARCHAR(50),
+    deleted INTEGER DEFAULT 0,
+    FOREIGN KEY (activity_id) REFERENCES public_activities(id),
+    FOREIGN KEY (resident_id) REFERENCES residents(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_signups_activity ON activity_signups(activity_id);
+CREATE INDEX IF NOT EXISTS idx_signups_resident ON activity_signups(resident_id);
+CREATE INDEX IF NOT EXISTS idx_signups_status ON activity_signups(status);
+CREATE INDEX IF NOT EXISTS idx_signups_deleted ON activity_signups(deleted);
+
 -- 会议记录表
 CREATE TABLE IF NOT EXISTS meetings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -233,3 +279,71 @@ CREATE TABLE IF NOT EXISTS meetings (
 
 CREATE INDEX IF NOT EXISTS idx_meetings_time ON meetings(meeting_time);
 CREATE INDEX IF NOT EXISTS idx_meetings_deleted ON meetings(deleted);
+
+-- =============================================
+-- 党务管理相关表
+-- =============================================
+
+-- 党员档案表
+CREATE TABLE IF NOT EXISTS party_members (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_card VARCHAR(18) NOT NULL UNIQUE,
+    name VARCHAR(50),
+    gender VARCHAR(10),
+    birth_date DATE,
+    phone VARCHAR(20),
+    address VARCHAR(200),
+    join_date VARCHAR(20),
+    convert_date VARCHAR(20),
+    status VARCHAR(20) DEFAULT 'activist',
+    creator VARCHAR(50),
+    create_time VARCHAR(50),
+    update_time VARCHAR(50),
+    deleted INTEGER DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS idx_party_members_id_card ON party_members(id_card);
+CREATE INDEX IF NOT EXISTS idx_party_members_status ON party_members(status);
+CREATE INDEX IF NOT EXISTS idx_party_members_name ON party_members(name);
+CREATE INDEX IF NOT EXISTS idx_party_members_deleted ON party_members(deleted);
+
+-- 党务活动表
+CREATE TABLE IF NOT EXISTS party_activities (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    member_id INTEGER NOT NULL,
+    theme VARCHAR(100) NOT NULL,
+    activity_type VARCHAR(50),
+    activity_time VARCHAR(50),
+    location VARCHAR(200),
+    participation VARCHAR(500),
+    content TEXT,
+    creator VARCHAR(50),
+    create_time VARCHAR(50),
+    update_time VARCHAR(50),
+    deleted INTEGER DEFAULT 0,
+    FOREIGN KEY (member_id) REFERENCES party_members(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_party_activities_member ON party_activities(member_id);
+CREATE INDEX IF NOT EXISTS idx_party_activities_time ON party_activities(activity_time);
+CREATE INDEX IF NOT EXISTS idx_party_activities_deleted ON party_activities(deleted);
+
+-- 党费收缴表
+CREATE TABLE IF NOT EXISTS party_dues (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    member_id INTEGER NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    pay_month VARCHAR(20),
+    pay_date VARCHAR(20),
+    status VARCHAR(20) DEFAULT 'unpaid',
+    remark VARCHAR(500),
+    creator VARCHAR(50),
+    create_time VARCHAR(50),
+    deleted INTEGER DEFAULT 0,
+    FOREIGN KEY (member_id) REFERENCES party_members(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_party_dues_member ON party_dues(member_id);
+CREATE INDEX IF NOT EXISTS idx_party_dues_pay_month ON party_dues(pay_month);
+CREATE INDEX IF NOT EXISTS idx_party_dues_status ON party_dues(status);
+CREATE INDEX IF NOT EXISTS idx_party_dues_deleted ON party_dues(deleted);
