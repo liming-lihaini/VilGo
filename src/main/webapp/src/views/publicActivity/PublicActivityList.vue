@@ -96,7 +96,7 @@
           <el-descriptions-item label="活动总数">{{ statistics.totalActivities || 0 }}</el-descriptions-item>
           <el-descriptions-item label="报名人数">{{ statistics.totalSignups || 0 }}</el-descriptions-item>
           <el-descriptions-item label="累计工时">{{ statistics.totalWorkHours || 0 }} 小时</el-descriptions-item>
-          <el-descriptions-item label="累计工值{{ statistics.totalWorkValue || 0 }} 元</el-descriptions-item>
+          <el-descriptions-item label="累计工值">{{ statistics.totalWorkValue || 0 }} 元</el-descriptions-item>
         </el-descriptions>
       </el-tab-pane>
     </el-tabs>

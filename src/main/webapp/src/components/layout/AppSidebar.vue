@@ -58,6 +58,15 @@
         <el-menu-item index="/party-work">党务管理</el-menu-item>
       </el-sub-menu>
 
+      <!-- 公益活动 -->
+      <el-sub-menu index="public-activity">
+        <template #title>
+          <el-icon><Calendar /></el-icon>
+          <span>公益活动</span>
+        </template>
+        <el-menu-item index="/public-activity">活动管理</el-menu-item>
+      </el-sub-menu>
+
       <!-- 村委公示栏 -->
       <el-sub-menu index="notice">
         <template #title>
@@ -103,7 +112,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { DArrowLeft, DArrowRight, User, House, UserFilled, Avatar, TrendCharts, Star, Bell, Document, DataBoard, Collection } from '@element-plus/icons-vue'
+import { DArrowLeft, DArrowRight, User, House, UserFilled, Avatar, TrendCharts, Star, Bell, Document, DataBoard, Collection, Calendar } from '@element-plus/icons-vue'
 import logoImage from '@/assets/images/logo-1.png'
 
 const route = useRoute()

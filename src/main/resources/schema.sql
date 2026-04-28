@@ -347,3 +347,59 @@ CREATE INDEX IF NOT EXISTS idx_party_dues_member ON party_dues(member_id);
 CREATE INDEX IF NOT EXISTS idx_party_dues_pay_month ON party_dues(pay_month);
 CREATE INDEX IF NOT EXISTS idx_party_dues_status ON party_dues(status);
 CREATE INDEX IF NOT EXISTS idx_party_dues_deleted ON party_dues(deleted);
+
+-- 公示表
+CREATE TABLE IF NOT EXISTS notices (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title VARCHAR(100) NOT NULL UNIQUE,
+    content TEXT,
+    notice_type VARCHAR(20),
+    publisher VARCHAR(50),
+    expire_date VARCHAR(20),
+    creator VARCHAR(50),
+    create_time TEXT,
+    update_time TEXT,
+    deleted INTEGER DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS idx_notices_title ON notices(title);
+CREATE INDEX IF NOT EXISTS idx_notices_type ON notices(notice_type);
+CREATE INDEX IF NOT EXISTS idx_notices_deleted ON notices(deleted);
+
+-- 公示反馈表
+CREATE TABLE IF NOT EXISTS notice_feedback (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    notice_id INTEGER NOT NULL,
+    resident_id INTEGER,
+    content TEXT,
+    reply TEXT,
+    create_time TEXT,
+    deleted INTEGER DEFAULT 0,
+    FOREIGN KEY (notice_id) REFERENCES notices(id),
+    FOREIGN KEY (resident_id) REFERENCES residents(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_feedback_notice_id ON notice_feedback(notice_id);
+CREATE INDEX IF NOT EXISTS idx_feedback_resident_id ON notice_feedback(resident_id);
+CREATE INDEX IF NOT EXISTS idx_feedback_deleted ON notice_feedback(deleted);
+
+-- 新闻动态表
+CREATE TABLE IF NOT EXISTS news (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title VARCHAR(100) NOT NULL UNIQUE,
+    content TEXT NOT NULL,
+    cover_image VARCHAR(500),
+    keywords VARCHAR(200),
+    category VARCHAR(20) NOT NULL,
+    publish_time VARCHAR(50),
+    status VARCHAR(20) DEFAULT 'published',
+    creator VARCHAR(50),
+    create_time TEXT,
+    update_time TEXT,
+    deleted INTEGER DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS idx_news_title ON news(title);
+CREATE INDEX IF NOT EXISTS idx_news_category ON news(category);
+CREATE INDEX IF NOT EXISTS idx_news_status ON news(status);
+CREATE INDEX IF NOT EXISTS idx_news_deleted ON news(deleted);

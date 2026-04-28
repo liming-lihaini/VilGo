@@ -9,13 +9,22 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@element-plus/icons-vue": "^2.3.0",
+    "@milkdown/core": "^7.20.0",
+    "@milkdown/plugin-clipboard": "^7.20.0",
+    "@milkdown/plugin-history": "^7.20.0",
+    "@milkdown/plugin-listener": "^7.20.0",
+    "@milkdown/preset-commonmark": "^7.20.0",
+    "@milkdown/preset-gfm": "^7.20.0",
+    "@milkdown/theme-nord": "^7.20.0",
+    "@milkdown/transformer": "^7.20.0",
+    "axios": "^1.6.0",
+    "echarts": "^5.5.0",
+    "element-plus": "^2.5.0",
+    "pinia": "^2.1.0",
     "vue": "^3.4.0",
     "vue-router": "^4.2.0",
-    "pinia": "^2.1.0",
-    "element-plus": "^2.5.0",
-    "axios": "^1.6.0",
-    "@element-plus/icons-vue": "^2.3.0",
-    "echarts": "^5.5.0"
+    "wangeditor": "^4.7.5"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",

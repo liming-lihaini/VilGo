@@ -20,6 +20,9 @@ public class WebConfig implements WebMvcConfigurer {
         // 附件静态资源访问
         registry.addResourceHandler("/attachments/**")
                 .addResourceLocations("file:" + attachmentPath + "/");
+        // 上传图片静态资源访问
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:./static/uploads/", "classpath:/static/uploads/");
     }
 
     @Override

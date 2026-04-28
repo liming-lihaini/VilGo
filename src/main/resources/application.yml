@@ -23,7 +23,7 @@ spring:
     time-zone: GMT+8
   web:
     resources:
-      static-locations: classpath:/static/,classpath:/templates/
+      static-locations: classpath:/static/,classpath:/templates/,file:./static/uploads/
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher

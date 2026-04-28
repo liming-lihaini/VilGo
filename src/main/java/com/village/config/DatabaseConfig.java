@@ -107,7 +107,39 @@ public class DatabaseConfig {
             // 执行建表脚本
             executeSchema();
         } else {
-            log.info("数据库和表已存在，跳过初始化");
+            log.info("数据库和表已存在，执行列迁移...");
+            executeColumnMigrations();
+        }
+    }
+
+    /**
+     * 执行列迁移（添加新列）
+     */
+    private void executeColumnMigrations() {
+        try {
+            // 检查并添加 news 表的新列
+            addColumnIfNotExists("news", "cover_image", "VARCHAR(500)");
+            addColumnIfNotExists("news", "keywords", "VARCHAR(200)");
+            log.info("列迁移完成");
+        } catch (Exception e) {
+            log.error("列迁移失败", e);
+        }
+    }
+
+    /**
+     * 添加列（如果不存在）
+     */
+    private void addColumnIfNotExists(String tableName, String columnName, String columnType) {
+        try {
+            String checkSql = "SELECT COUNT(*) FROM pragma_table_info('" + tableName + "') WHERE name='" + columnName + "'";
+            Integer count = jdbcTemplate.queryForObject(checkSql, Integer.class);
+            if (count == null || count == 0) {
+                String alterSql = "ALTER TABLE " + tableName + " ADD COLUMN " + columnName + " " + columnType;
+                jdbcTemplate.execute(alterSql);
+                log.info("添加列成功: {}.{}", tableName, columnName);
+            }
+        } catch (Exception e) {
+            log.warn("添加列 {}.{} 失败或已存在: {}", tableName, columnName, e.getMessage());
         }
     }
 
