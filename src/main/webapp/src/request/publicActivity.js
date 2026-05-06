@@ -48,5 +48,16 @@ export const publicActivityApi = {
       method: 'post',
       data: params
     })
+  },
+
+  /**
+   * 根据村民ID获取活动报名记录
+   */
+  getSignupsByResidentId(residentId) {
+    return request({
+      url: '/activitySignup/list',
+      method: 'post',
+      data: { residentId, pageNum: 1, pageSize: 100 }
+    })
   }
 }

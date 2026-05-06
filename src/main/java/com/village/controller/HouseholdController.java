@@ -202,4 +202,22 @@ public class HouseholdController {
         List<HouseholdChange> changes = householdChangeService.listByHouseholdId(householdId);
         return Result.success(changes);
     }
+
+    /**
+     * 根据村民ID获取其户籍信息
+     */
+    @GetMapping("/member/detail")
+    public Result<Map<String, Object>> getMemberHousehold(@RequestParam Long residentId) {
+        log.info("根据村民ID获取户籍信息，residentId={}", residentId);
+        HouseholdMember member = householdMemberService.getByResidentId(residentId);
+        if (member == null) {
+            return Result.success(null);
+        }
+        Household household = householdService.getById(member.getHouseholdId());
+        Map<String, Object> result = new java.util.HashMap<>();
+        result.put("householdId", member.getHouseholdId());
+        result.put("relation", member.getRelation());
+        result.put("household", household);
+        return Result.success(result);
+    }
 }

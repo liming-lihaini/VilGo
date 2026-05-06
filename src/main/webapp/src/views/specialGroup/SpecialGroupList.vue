@@ -116,31 +116,48 @@
       </div>
     </el-drawer>
 
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="550px" destroy-on-close>
+    <el-drawer v-model="drawerVisible" :title="drawerTitle" size="1000px" destroy-on-close>
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
-        <el-form-item label="被帮扶人" prop="idCard">
-          <div style="display: flex; gap: 8px; width: 100%">
-            <el-input v-model="form.idCard" placeholder="请选择被帮扶人" readonly style="flex: 1" />
-            <el-button type="primary" @click="handleSelectResident">选择村民</el-button>
-          </div>
+        <el-form-item label="被帮扶人" prop="residentId">
+          <el-select
+            v-model="form.residentId"
+            filterable
+            remote
+            :remote-method="searchResidents"
+            :loading="residentLoading"
+            placeholder="搜索村民姓名或身份证号"
+            @change="handleResidentChange"
+            style="width: 100%"
+            :disabled="!!form.id"
+          >
+            <el-option
+              v-for="resident in residentOptions"
+              :key="resident.id"
+              :label="resident.name"
+              :value="resident.id"
+            >
+              <span>{{ resident.name }}</span>
+              <span style="color: #999; font-size: 12px; margin-left: 8px">{{ resident.idCard }}</span>
+            </el-option>
+          </el-select>
         </el-form-item>
         <el-form-item label="姓名" prop="name">
-          <el-input v-model="form.name" placeholder="请输入姓名" :disabled="!!form.idCard" />
+          <el-input v-model="form.name" placeholder="请输入姓名" :disabled="!!form.residentId" />
         </el-form-item>
         <el-form-item label="性别">
-          <el-select v-model="form.gender" placeholder="请选择" :disabled="!!form.idCard">
+          <el-select v-model="form.gender" placeholder="请选择" :disabled="!!form.residentId">
             <el-option label="男" value="male" />
             <el-option label="女" value="female" />
           </el-select>
         </el-form-item>
         <el-form-item label="出生日期">
-          <el-date-picker v-model="form.birthDate" type="date" placeholder="选择日期" value-format="YYYY-MM-DD" style="width: 100%" :disabled="!!form.idCard" />
+          <el-date-picker v-model="form.birthDate" type="date" placeholder="选择日期" value-format="YYYY-MM-DD" style="width: 100%" :disabled="!!form.residentId" />
         </el-form-item>
         <el-form-item label="联系电话">
-          <el-input v-model="form.phone" placeholder="请输入联系电话" :disabled="!!form.idCard" />
+          <el-input v-model="form.phone" placeholder="请输入联系电话" :disabled="!!form.residentId" />
         </el-form-item>
         <el-form-item label="住址">
-          <el-input v-model="form.address" placeholder="请输入住址" :disabled="!!form.idCard" />
+          <el-input v-model="form.address" placeholder="请输入住址" :disabled="!!form.residentId" />
         </el-form-item>
         <el-form-item label="人群类型" prop="groupType">
           <el-select v-model="form.groupType" placeholder="请选择" style="width: 100%">
@@ -171,47 +188,12 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button @click="drawerVisible = false">取消</el-button>
         <el-button type="primary" @click="handleSubmit">确定</el-button>
       </template>
-    </el-dialog>
+    </el-drawer>
 
-    <el-dialog v-model="residentDialogVisible" title="选择村民" width="700px" destroy-on-close>
-      <div class="filter-bar" style="margin-bottom: 16px">
-        <el-form :inline="true" :model="residentQuery">
-          <el-form-item label="身份证号">
-            <el-input v-model="residentQuery.idCard" placeholder="身份证号" clearable style="width: 150px" />
-          </el-form-item>
-          <el-form-item label="姓名">
-            <el-input v-model="residentQuery.name" placeholder="姓名" clearable style="width: 120px" />
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" @click="loadResidents">查询</el-button>
-          </el-form-item>
-        </el-form>
-      </div>
-      <el-table :data="residentList" stripe border size="small" max-height="300" @row-click="handleResidentSelect" highlight-current-row>
-        <el-table-column type="index" label="序号" width="50" />
-        <el-table-column prop="name" label="姓名" width="160" />
-        <el-table-column prop="idCard" label="身份证号"/>
-        <el-table-column prop="gender" label="性别" width="120">
-          <template #default="{ row }">{{ row.gender === 'male' ? '男' : row.gender === 'female' ? '女' : '-' }}</template>
-        </el-table-column>
-        <el-table-column prop="phone" label="电话" width="120" />
-      </el-table>
-      <div class="pagination" style="margin-top: 12px; display: flex; justify-content: flex-end">
-        <el-pagination
-          v-model:current-page="residentQuery.pageNum"
-          v-model:page-size="residentQuery.pageSize"
-          :total="residentTotal"
-          layout="total, prev, pager, next"
-          small
-          @current-change="loadResidents"
-        />
-      </div>
-    </el-dialog>
-
-    <el-dialog v-model="recordDialogVisible" title="添加帮扶记录" width="500px" destroy-on-close>
+    <el-dialog v-model="recordDialogVisible" title="添加帮扶记录" width="600px" destroy-on-close>
       <el-form ref="recordFormRef" :model="recordForm" :rules="recordRules" label-width="100px">
         <el-form-item label="帮扶时间" prop="helpTime">
           <el-date-picker v-model="recordForm.helpTime" type="date" placeholder="选择日期" value-format="YYYY-MM-DD" style="width: 100%" />
@@ -267,11 +249,11 @@ const queryForm = reactive({
   pageSize: 10
 })
 
-const dialogVisible = ref(false)
-const dialogTitle = ref('新增登记')
+const drawerTitle = ref('新增登记')
 const formRef = ref()
 const form = reactive({
   id: null,
+  residentId: null,
   idCard: '',
   name: '',
   gender: '',
@@ -287,7 +269,7 @@ const form = reactive({
 })
 
 const rules = {
-  idCard: [{ required: true, message: '请选择被帮扶人', trigger: 'change' }],
+  residentId: [{ required: true, message: '请选择被帮扶人', trigger: 'change' }],
   name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
   groupType: [{ required: true, message: '请选择人群类型', trigger: 'change' }]
 }
@@ -309,15 +291,39 @@ const recordRules = {
 const statsDialogVisible = ref(false)
 const stats = ref({})
 
-const residentDialogVisible = ref(false)
-const residentList = ref([])
-const residentTotal = ref(0)
-const residentQuery = reactive({
-  idCard: '',
-  name: '',
-  pageNum: 1,
-  pageSize: 10
-})
+const residentLoading = ref(false)
+const residentOptions = ref([])
+
+// 搜索村民
+const searchResidents = async (keyword) => {
+  if (!keyword) {
+    residentOptions.value = []
+    return
+  }
+  residentLoading.value = true
+  try {
+    const res = await residentApi.search(keyword)
+    residentOptions.value = res.list || []
+  } catch (error) {
+    console.error('搜索村民失败:', error)
+  } finally {
+    residentLoading.value = false
+  }
+}
+
+// 选择村民后自动填充信息
+const handleResidentChange = async (residentId) => {
+  if (!residentId) return
+  const resident = residentOptions.value.find(r => r.id === residentId)
+  if (resident) {
+    form.idCard = resident.idCard
+    form.name = resident.name
+    form.gender = resident.gender
+    form.birthDate = resident.birthDate
+    form.phone = resident.phone
+    form.address = resident.address
+  }
+}
 
 onMounted(() => {
   handleQuery()
@@ -346,8 +352,9 @@ const handleReset = () => {
 }
 
 const handleAdd = () => {
-  dialogTitle.value = '新增登记'
+  drawerTitle.value = '新增登记'
   form.id = null
+  form.residentId = null
   form.idCard = ''
   form.name = ''
   form.gender = ''
@@ -360,13 +367,14 @@ const handleAdd = () => {
   form.helpTime = ''
   form.helpResult = ''
   form.helpStatus = 'ongoing'
-  dialogVisible.value = true
+  residentOptions.value = []
+  drawerVisible.value = true
 }
 
 const handleEdit = (row) => {
-  dialogTitle.value = '编辑登记'
+  drawerTitle.value = '编辑登记'
   Object.assign(form, row)
-  dialogVisible.value = true
+  drawerVisible.value = true
 }
 
 const handleSubmit = async () => {
@@ -379,7 +387,7 @@ const handleSubmit = async () => {
       await specialGroupApi.create(form)
       ElMessage.success('创建成功')
     }
-    dialogVisible.value = false
+    drawerVisible.value = false
     handleQuery()
   } catch (e) {
     if (e !== 'cancel') {
@@ -476,34 +484,6 @@ const handleDeleteRecord = async (row) => {
       ElMessage.error(e.message || '删除失败')
     }
   }
-}
-
-const handleSelectResident = () => {
-  residentQuery.idCard = ''
-  residentQuery.name = ''
-  residentQuery.pageNum = 1
-  residentDialogVisible.value = true
-  loadResidents()
-}
-
-const loadResidents = async () => {
-  try {
-    const res = await residentApi.list(residentQuery)
-    residentList.value = res.list || []
-    residentTotal.value = res.total || 0
-  } catch (e) {
-    ElMessage.error(e.message || '加载村民列表失败')
-  }
-}
-
-const handleResidentSelect = (row) => {
-  form.idCard = row.idCard
-  form.name = row.name
-  form.gender = row.gender
-  form.birthDate = row.birthDate
-  form.phone = row.phone
-  form.address = row.address
-  residentDialogVisible.value = false
 }
 
 const getGroupTypeName = (type) => {

@@ -69,6 +69,16 @@ public class PartyWorkController {
     }
 
     /**
+     * 根据村民ID获取党员档案
+     */
+    @GetMapping("/member/getByResidentId/{residentId}")
+    public Result<PartyMember> getMemberByResidentId(@PathVariable Long residentId) {
+        log.info("根据村民ID获取党员档案，residentId={}", residentId);
+        PartyMember member = partyWorkService.getByResidentId(residentId);
+        return Result.success(member);
+    }
+
+    /**
      * 查询党员列表
      */
     @PostMapping("/member/list")

@@ -1,8 +1,8 @@
 <template>
-  <el-dialog
-    v-model="dialogVisible"
+  <el-drawer
+    v-model="drawerVisible"
     :title="isEdit ? '编辑新闻' : '创建新闻'"
-    width="900px"
+    size="1000px"
     :close-on-click-modal="false"
     @close="handleClose"
   >
@@ -47,7 +47,7 @@
       <el-button @click="handleClose">取消</el-button>
       <el-button type="primary" :loading="submitting" @click="handleSubmit">提交</el-button>
     </template>
-  </el-dialog>
+  </el-drawer>
 </template>
 
 <script setup>
@@ -75,7 +75,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visible', 'success'])
 
-const dialogVisible = computed({
+const drawerVisible = computed({
   get: () => props.visible,
   set: (val) => emit('update:visible', val)
 })
@@ -141,7 +141,7 @@ function resetForm() {
 }
 
 function handleClose() {
-  dialogVisible.value = false
+  drawerVisible.value = false
   resetForm()
 }
 

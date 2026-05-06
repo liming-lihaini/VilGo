@@ -1,67 +1,66 @@
 <template>
   <div class="notice-list">
-    <div class="filter-bar">
-      <el-form :inline="true" :model="query" class="query-form">
-        <el-form-item label="公示标题">
-          <el-input v-model="query.title" placeholder="公示标题" clearable @keyup.enter="loadNotices" />
-        </el-form-item>
-        <el-form-item label="公示类型">
-          <el-select v-model="query.noticeType" placeholder="请选择" clearable @change="loadNotices">
-            <el-option label="通知" value="通知" />
-            <el-option label="政策文件" value="政策文件" />
-            <el-option label="财务公开" value="财务公开" />
-            <el-option label="项目公示" value="项目公示" />
-            <el-option label="惠民信息" value="惠民信息" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="loadNotices">查询</el-button>
-          <el-button @click="resetQuery">重置</el-button>
-        </el-form-item>
-      </el-form>
-    </div>
+    <!-- 标签页 -->
+        <div class="filter-bar">
+          <el-form :inline="true" :model="query" class="query-form">
+            <el-form-item>
+              <el-button type="primary" @click="handleAdd">发布公示</el-button>
+            </el-form-item>
+            <el-form-item label="公示标题">
+              <el-input v-model="query.title" placeholder="公示标题" clearable @keyup.enter="loadNotices" />
+            </el-form-item>
+            <el-form-item label="公示类型">
+              <el-select v-model="query.noticeType" placeholder="请选择" clearable @change="loadNotices" style="width: 200px;">
+                <el-option label="通知" value="通知" />
+                <el-option label="政策文件" value="政策文件" />
+                <el-option label="财务公开" value="财务公开" />
+                <el-option label="项目公示" value="项目公示" />
+                <el-option label="惠民信息" value="惠民信息" />
+              </el-select>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="loadNotices">查询</el-button>
+              <el-button @click="resetQuery">重置</el-button>
+            </el-form-item>
+          </el-form>
+        </div>
 
-    <div class="toolbar">
-      <el-button type="primary" @click="handleAdd">发布公示</el-button>
-    </div>
+        <el-table v-loading="loading" :data="noticeList" stripe border>
+          <el-table-column type="index" label="序号" width="60" align="center" />
+          <el-table-column prop="title" label="公示标题" min-width="200" />
+          <el-table-column prop="noticeType" label="公示类型" width="100" align="center">
+            <template #default="{ row }">{{ row.noticeType || '-' }}</template>
+          </el-table-column>
+          <el-table-column prop="publisher" label="发布人" width="100" align="center" />
+          <el-table-column label="公示期限" width="120" align="center">
+            <template #default="{ row }">{{ row.expireDate || '-' }}</template>
+          </el-table-column>
+          <el-table-column label="状态" width="90" align="center">
+            <template #default="{ row }">
+              <el-tag :type="getStatusTag(row.expireDate)" size="small">{{ getStatusName(row.expireDate) }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="createTime" label="发布时间" width="160" align="center" />
+          <el-table-column label="操作" width="200" fixed="right">
+            <template #default="{ row }">
+              <el-button link type="primary" size="small" @click="handleView(row)">查看</el-button>
+              <el-button link type="warning" size="small" @click="handleEdit(row)">编辑</el-button>
+              <el-button link type="danger" size="small" @click="handleDelete(row)">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
 
-    <el-table v-loading="loading" :data="noticeList" stripe border>
-      <el-table-column type="index" label="序号" width="60" align="center" />
-      <el-table-column prop="title" label="公示标题" min-width="200" />
-      <el-table-column prop="noticeType" label="公示类型" width="100" align="center">
-        <template #default="{ row }">{{ row.noticeType || '-' }}</template>
-      </el-table-column>
-      <el-table-column prop="publisher" label="发布人" width="100" align="center" />
-      <el-table-column label="公示期限" width="120" align="center">
-        <template #default="{ row }">{{ row.expireDate || '-' }}</template>
-      </el-table-column>
-      <el-table-column label="状态" width="90" align="center">
-        <template #default="{ row }">
-          <el-tag :type="getStatusTag(row.expireDate)" size="small">{{ getStatusName(row.expireDate) }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="createTime" label="发布时间" width="160" align="center" />
-      <el-table-column label="操作" width="200" fixed="right">
-        <template #default="{ row }">
-          <el-button link type="primary" size="small" @click="handleView(row)">查看</el-button>
-          <el-button link type="warning" size="small" @click="handleEdit(row)">编辑</el-button>
-          <el-button link type="danger" size="small" @click="handleDelete(row)">删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-
-    <div class="pagination">
-      <el-pagination
-        v-model:current-page="query.pageNum"
-        v-model:page-size="query.pageSize"
-        :page-sizes="[10, 20, 50, 100]"
-        :total="total"
-        layout="total, sizes, prev, pager, next, jumper"
-        @size-change="loadNotices"
-        @current-change="loadNotices"
-      />
-    </div>
-
+        <div class="pagination">
+          <el-pagination
+            v-model:current-page="query.pageNum"
+            v-model:page-size="query.pageSize"
+            :page-sizes="[10, 20, 50, 100]"
+            :total="total"
+            layout="total, sizes, prev, pager, next, jumper"
+            @size-change="loadNotices"
+            @current-change="loadNotices"
+          />
+        </div>
     <!-- 公示表单弹窗 -->
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="800px" destroy-on-close>
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
@@ -69,7 +68,7 @@
           <el-input v-model="form.title" placeholder="请输入公示标题" />
         </el-form-item>
         <el-form-item label="公示类型">
-          <el-select v-model="form.noticeType" placeholder="请选择" style="width: 100%">
+          <el-select v-model="form.noticeType" placeholder="请选择" style="width: 100%" @change="handleNoticeTypeChange">
             <el-option label="通知" value="通知" />
             <el-option label="政策文件" value="政策文件" />
             <el-option label="财务公开" value="财务公开" />
@@ -81,7 +80,7 @@
           <el-date-picker v-model="form.expireDate" type="date" placeholder="选择日期" value-format="YYYY-MM-DD" style="width: 100%" />
         </el-form-item>
         <el-form-item label="公示内容" prop="content">
-          <el-input v-model="form.content" type="textarea" :rows="10" placeholder="请输入公示内容" />
+          <WangEditor v-model="form.content" placeholder="请输入公示内容" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -90,9 +89,10 @@
       </template>
     </el-dialog>
 
-    <!-- 公示详情弹窗 -->
-    <el-dialog v-model="detailDialogVisible" title="公示详情" width="800px" destroy-on-close>
-      <el-descriptions :column="2" border v-if="currentNotice">
+    <!-- 公示详情抽屉 -->
+    <el-drawer v-model="detailDrawerVisible" title="公示详情" size="1000px" destroy-on-close>
+      <div class="drawer-content">
+        <el-descriptions :column="2" border v-if="currentNotice">
         <el-descriptions-item label="公示标题" :span="2">{{ currentNotice.title }}</el-descriptions-item>
         <el-descriptions-item label="公示类型">{{ currentNotice.noticeType || '-' }}</el-descriptions-item>
         <el-descriptions-item label="发布人">{{ currentNotice.publisher || '-' }}</el-descriptions-item>
@@ -100,63 +100,26 @@
         <el-descriptions-item label="状态">
           <el-tag :type="getStatusTag(currentNotice.expireDate)" size="small">{{ getStatusName(currentNotice.expireDate) }}</el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="发布时间" :span="2">{{ currentNotice.createTime }}</el-descriptions-item>
+        <el-descriptions-item label="发布时间" :span="2">{{ currentNotice?.createTime?.substring(0,10) }}</el-descriptions-item>
         <el-descriptions-item label="公示内容" :span="2">
-          <div class="notice-content">{{ currentNotice.content }}</div>
+          <div class="notice-content" v-html="currentNotice.content"></div>
         </el-descriptions-item>
       </el-descriptions>
-
-      <el-divider>反馈列表</el-divider>
-
-      <div class="feedback-list">
-        <el-button type="primary" size="small" @click="handleAddFeedback" style="margin-bottom: 10px">提交反馈</el-button>
-        <el-empty v-if="feedbackList.length === 0" description="暂无反馈" />
-        <div v-else>
-          <div v-for="feedback in feedbackList" :key="feedback.id" class="feedback-item">
-            <div class="feedback-content">{{ feedback.content }}</div>
-            <div class="feedback-time">{{ feedback.createTime }}</div>
-            <div v-if="feedback.reply" class="feedback-reply">
-              <div class="reply-label">回复：</div>
-              <div class="reply-content">{{ feedback.reply }}</div>
-            </div>
-            <el-button v-if="!feedback.reply" type="text" size="small" @click="handleReplyFeedback(feedback)">回复</el-button>
-          </div>
-        </div>
       </div>
-    </el-dialog>
-
-    <!-- 反馈表单弹窗 -->
-    <el-dialog v-model="feedbackDialogVisible" title="提交反馈" width="500px" destroy-on-close>
-      <el-form ref="feedbackFormRef" :model="feedbackForm" :rules="feedbackRules" label-width="80px">
-        <el-form-item label="反馈内容" prop="content">
-          <el-input v-model="feedbackForm.content" type="textarea" :rows="5" placeholder="请输入反馈内容" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="feedbackDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmitFeedback">确定</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 回复反馈弹窗 -->
-    <el-dialog v-model="replyDialogVisible" title="回复反馈" width="500px" destroy-on-close>
-      <el-form ref="replyFormRef" :model="replyForm" :rules="replyRules" label-width="80px">
-        <el-form-item label="回复内容" prop="reply">
-          <el-input v-model="replyForm.reply" type="textarea" :rows="5" placeholder="请输入回复内容" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="replyDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmitReply">确定</el-button>
-      </template>
-    </el-dialog>
+    </el-drawer>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { noticeApi } from '@/request/notice'
+import WangEditor from '@/components/WangEditor.vue'
+
+const router = useRouter()
+
+const activeTab = ref('publish')
 
 const query = reactive({
   pageNum: 1,
@@ -184,12 +147,27 @@ const form = reactive({
   creator: 'admin'
 })
 
+// 公示类型模板
+const noticeTypeTemplates = {
+  '通知': '<h2>通知</h2><p>各位村民：</p><p>现将有关事项通知如下：</p><p>1. </p><p>2. </p><p>特此通知。</p>',
+  '政策文件': '<h2>政策文件</h2><p>根据上级文件精神，现将有关政策内容公示如下：</p><p>一、</p><p>二、</p><p>三、</p>',
+  '财务公开': '<h2>财务公开</h2><p>本期收入：</p><p>本期支出：</p><p>结余：</p><p>详细收支明细如下：</p>',
+  '项目公示': '<h2>项目公示</h2><p>项目名称：</p><p>项目内容：</p><p>实施时间：</p><p>预算金额：</p>',
+  '惠民信息': '<h2>惠民信息</h2><p>各位村民：</p><p>现将惠民政策相关信息通知如下：</p><p>一、补贴对象</p><p>二、补贴标准</p><p>三、申请流程</p>'
+}
+
+const handleNoticeTypeChange = (type) => {
+  if (type && noticeTypeTemplates[type] && !form.content) {
+    form.content = noticeTypeTemplates[type]
+  }
+}
+
 const rules = {
   title: [{ required: true, message: '公示标题不能为空', trigger: 'blur' }],
   content: [{ required: true, message: '公示内容不能为空', trigger: 'blur' }]
 }
 
-const detailDialogVisible = ref(false)
+const detailDrawerVisible = ref(false)
 const currentNotice = ref(null)
 const feedbackList = ref([])
 
@@ -234,8 +212,8 @@ const loadNotices = async () => {
   loading.value = true
   try {
     const res = await noticeApi.list(query)
-    noticeList.value = res.data.list || []
-    total.value = res.data.total || 0
+    noticeList.value = res.list || []
+    total.value = res.total || 0
   } catch (error) {
     ElMessage.error('加载公示列表失败')
   } finally {
@@ -270,7 +248,7 @@ const handleEdit = (row) => {
 
 const handleView = async (row) => {
   currentNotice.value = row
-  detailDialogVisible.value = true
+  detailDrawerVisible.value = true
   loadFeedbackList(row.id)
 }
 
@@ -310,7 +288,7 @@ const handleSubmit = async () => {
 const loadFeedbackList = async (noticeId) => {
   try {
     const res = await noticeApi.getFeedbackList(noticeId)
-    feedbackList.value = res.data || []
+    feedbackList.value = res || []
   } catch (error) {
     ElMessage.error('加载反馈列表失败')
   }
@@ -353,6 +331,10 @@ const handleSubmitReply = async () => {
   }
 }
 
+const goToNews = () => {
+  router.push('/news')
+}
+
 onMounted(() => {
   loadNotices()
 })
@@ -364,8 +346,11 @@ onMounted(() => {
 }
 
 .filter-bar {
+  padding: 10px;
   margin-bottom: 20px;
+  background-color: #fff;
 }
+
 
 .toolbar {
   margin-bottom: 20px;
@@ -382,6 +367,21 @@ onMounted(() => {
   word-break: break-word;
   line-height: 1.6;
 }
+
+.news-panel {
+  padding: 40px;
+  text-align: center;
+}
+
+.news-panel p {
+  margin-bottom: 20px;
+  color: #666;
+}
+
+.notice-tabs :deep(.el-tabs__content) {
+  padding: 0 20px;
+}
+
 
 .feedback-list {
   max-height: 400px;

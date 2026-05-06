@@ -29,4 +29,9 @@ public interface HouseholdMemberService {
      * 批量添加家庭成员
      */
     void batchAddMembers(Long householdId, List<Long> residentIds);
+
+    /**
+     * 根据村民ID获取其家庭户信息
+     */
+    HouseholdMember getByResidentId(Long residentId);
 }

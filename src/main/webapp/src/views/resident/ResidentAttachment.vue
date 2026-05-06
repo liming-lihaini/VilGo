@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="dialogVisible" title="村民附件管理" width="700px" destroy-on-close>
+  <el-drawer v-model="drawerVisible" title="村民附件管理" size="1000px" destroy-on-close>
     <div class="attachment-container">
       <!-- 上传区域 -->
       <div class="upload-section">
@@ -48,6 +48,8 @@
               <div class="attachment-name">{{ item.fileName }}</div>
               <div class="attachment-actions">
                 <el-button type="primary" link @click="previewFile(item)">预览</el-button>
+                <el-button type="success" link @click="handleDownload(item)">下载</el-button>
+                <el-button type="warning" link @click="handlePrint(item)">打印</el-button>
                 <el-button type="danger" link @click="handleDelete(item)">删除</el-button>
               </div>
             </div>
@@ -57,15 +59,23 @@
       </el-tabs>
     </div>
 
-    <!-- 预览弹窗 -->
-    <el-dialog v-model="previewVisible" title="附件预览" :width="isFullscreen ? '100%' : '800px'" :fullscreen="isFullscreen" append-to-body destroy-on-close>
+    <!-- 预览抽屉 -->
+    <el-drawer v-model="previewDrawerVisible" title="附件预览" :size="isFullscreen ? '100%' : '800px'" :fullscreen="isFullscreen" append-to-body destroy-on-close>
       <template #header>
         <div class="preview-header">
           <span>{{ previewName }}</span>
-          <el-button type="primary" link @click="toggleFullscreen">
-            <el-icon><FullScreen /></el-icon>
-            {{ isFullscreen ? '退出全屏' : '全屏' }}
-          </el-button>
+          <div class="preview-header-actions">
+            <el-button type="primary" link @click="handleDownloadCurrent">
+              <el-icon><Download /></el-icon>下载
+            </el-button>
+            <el-button type="warning" link @click="handlePrintCurrent">
+              <el-icon><Printer /></el-icon>打印
+            </el-button>
+            <el-button type="primary" link @click="toggleFullscreen">
+              <el-icon><FullScreen /></el-icon>
+              {{ isFullscreen ? '退出全屏' : '全屏' }}
+            </el-button>
+          </div>
         </div>
       </template>
       <div class="preview-container" :class="{ fullscreen: isFullscreen }">
@@ -77,14 +87,14 @@
           <el-button type="primary" @click="downloadFile">下载文件</el-button>
         </div>
       </div>
-    </el-dialog>
-  </el-dialog>
+    </el-drawer>
+  </el-drawer>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Document, FullScreen } from '@element-plus/icons-vue'
+import { Document, FullScreen, Download, Printer } from '@element-plus/icons-vue'
 import { residentApi } from '@/request/resident'
 
 const props = defineProps({
@@ -95,7 +105,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visible', 'refresh'])
 
-const dialogVisible = computed({
+const drawerVisible = computed({
   get: () => props.visible,
   set: (val) => emit('update:visible', val)
 })
@@ -116,7 +126,7 @@ const categories = [
 ]
 
 // 预览相关
-const previewVisible = ref(false)
+const previewDrawerVisible = ref(false)
 const previewUrl = ref('')
 const previewType = ref('')
 const previewName = ref('')
@@ -138,9 +148,16 @@ watch(() => props.visible, (val) => {
 })
 
 const loadAttachments = async () => {
+  if (!props.residentId) {
+    console.log('loadAttachments: residentId is undefined')
+    return
+  }
+  console.log('loadAttachments: residentId =', props.residentId)
   try {
     const res = await residentApi.getAttachments(props.residentId)
+    console.log('loadAttachments: response =', res)
     attachments.value = res || []
+    console.log('loadAttachments: attachments =', attachments.value)
   } catch (error) {
     console.error('加载附件失败:', error)
   }
@@ -188,6 +205,7 @@ const beforeUpload = (file) => {
 }
 
 const handleUploadSuccess = (response) => {
+  console.log('上传成功, response:', response)
   ElMessage.success('上传成功')
   loadAttachments()
   emit('refresh')
@@ -201,7 +219,7 @@ const previewFile = (item) => {
   previewUrl.value = item.filePath
   previewType.value = getPreviewType(item)
   previewName.value = item.fileName
-  previewVisible.value = true
+  previewDrawerVisible.value = true
 }
 
 const downloadFile = () => {
@@ -209,6 +227,51 @@ const downloadFile = () => {
   link.href = previewUrl.value
   link.download = previewName.value
   link.click()
+}
+
+const handleDownload = (item) => {
+  const link = document.createElement('a')
+  link.href = item.filePath
+  link.download = item.fileName
+  link.click()
+}
+
+const handlePrint = (item) => {
+  if (isImage(item)) {
+    const printWindow = window.open('', '_blank')
+    printWindow.document.write(`<img src="${item.filePath}" style="max-width:100%;">`)
+    printWindow.document.close()
+    printWindow.print()
+  } else if (isPdf(item)) {
+    const link = document.createElement('a')
+    link.href = item.filePath
+    link.target = '_blank'
+    link.click()
+    ElMessage.info('PDF文件请在打开的新窗口中打印')
+  } else {
+    ElMessage.warning('暂不支持打印此格式')
+  }
+}
+
+const handleDownloadCurrent = () => {
+  downloadFile()
+}
+
+const handlePrintCurrent = () => {
+  if (previewType.value === 'image') {
+    const printWindow = window.open('', '_blank')
+    printWindow.document.write(`<img src="${previewUrl.value}" style="max-width:100%;">`)
+    printWindow.document.close()
+    setTimeout(() => printWindow.print(), 500)
+  } else if (previewType.value === 'pdf') {
+    const link = document.createElement('a')
+    link.href = previewUrl.value
+    link.target = '_blank'
+    link.click()
+    ElMessage.info('PDF文件请在打开的新窗口中打印')
+  } else {
+    ElMessage.warning('暂不支持打印此格式')
+  }
 }
 
 const handleDelete = async (item) => {
@@ -311,7 +374,7 @@ const handleDelete = async (item) => {
 .attachment-actions {
   display: flex;
   justify-content: center;
-  gap: 8px;
+  gap: 4px;
 }
 
 .preview-container {
@@ -330,6 +393,11 @@ const handleDelete = async (item) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.preview-header-actions {
+  display: flex;
+  gap: 12px;
 }
 
 .preview-image {

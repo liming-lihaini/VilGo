@@ -129,6 +129,9 @@ public class SpecialGroupServiceImpl implements SpecialGroupService {
         LambdaQueryWrapper<SpecialGroup> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SpecialGroup::getDeleted, 0);
 
+        if (dto.getResidentId() != null) {
+            wrapper.eq(SpecialGroup::getResidentId, dto.getResidentId());
+        }
         if (StringUtils.hasText(dto.getIdCard())) {
             wrapper.like(SpecialGroup::getIdCard, dto.getIdCard());
         }

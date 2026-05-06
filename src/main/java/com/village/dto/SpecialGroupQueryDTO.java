@@ -8,6 +8,8 @@ import lombok.Data;
 @Data
 public class SpecialGroupQueryDTO {
 
+    private Long residentId;
+
     private String idCard;
 
     private String name;

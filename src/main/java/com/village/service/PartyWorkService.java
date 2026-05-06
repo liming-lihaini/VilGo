@@ -39,6 +39,11 @@ public interface PartyWorkService {
     PartyMember getById(Long id);
 
     /**
+     * 根据村民ID获取党员档案
+     */
+    PartyMember getByResidentId(Long residentId);
+
+    /**
      * 查询党员列表
      */
     List<PartyMemberOutputDTO> list(PartyMemberQueryDTO dto);

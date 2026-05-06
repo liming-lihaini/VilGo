@@ -100,16 +100,6 @@ export const householdApi = {
     })
   },
 
-  /**
-   * 获取家庭成员列表
-   */
-  getMembers(householdId) {
-    return request({
-      url: `/household/members/${householdId}`,
-      method: 'get'
-    })
-  },
-
   // ========== 年度收入管理 ==========
 
   /**
@@ -173,6 +163,28 @@ export const householdApi = {
     return request({
       url: `/household/changes/${householdId}`,
       method: 'get'
+    })
+  },
+
+  /**
+   * 根据村民ID获取户籍信息
+   */
+  getMemberHousehold(residentId) {
+    return request({
+      url: '/household/member/detail',
+      method: 'get',
+      params: { residentId }
+    })
+  },
+
+  /**
+   * 获取户籍成员列表
+   */
+  getMembers(householdId) {
+    return request({
+      url: '/household/member/list',
+      method: 'post',
+      data: { householdId, pageNum: 1, pageSize: 100 }
     })
   }
 }

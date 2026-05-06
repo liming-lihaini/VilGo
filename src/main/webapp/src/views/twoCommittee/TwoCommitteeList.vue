@@ -170,14 +170,31 @@
       </el-tab-pane>
     </el-tabs>
 
-    <!-- 成员表单弹窗 -->
-    <el-dialog v-model="memberDialogVisible" :title="memberDialogTitle" width="550px" destroy-on-close>
+    <!-- 成员表单抽屉 -->
+    <el-drawer v-model="memberDrawerVisible" :title="memberDrawerTitle" size="1000px" destroy-on-close>
       <el-form ref="memberFormRef" :model="memberForm" :rules="memberRules" label-width="100px">
         <el-form-item label="村民选择" prop="residentId">
-          <div style="display: flex; gap: 8px; width: 100%">
-            <el-input v-model="memberForm.name" placeholder="请选择村民" readonly style="flex: 1" />
-            <el-button type="primary" @click="handleSelectResident">选择村民</el-button>
-          </div>
+          <el-select
+            v-model="memberForm.residentId"
+            filterable
+            remote
+            :remote-method="searchResidents"
+            :loading="residentLoading"
+            placeholder="搜索村民姓名或身份证号"
+            @change="handleResidentChange"
+            style="width: 100%"
+            :disabled="!!memberForm.id"
+          >
+            <el-option
+              v-for="resident in residentOptions"
+              :key="resident.id"
+              :label="resident.name"
+              :value="resident.id"
+            >
+              <span>{{ resident.name }}</span>
+              <span style="color: #999; font-size: 12px; margin-left: 8px">{{ resident.idCard }}</span>
+            </el-option>
+          </el-select>
         </el-form-item>
         <el-form-item label="性别">
           <el-select v-model="memberForm.gender" placeholder="请选择" :disabled="!!memberForm.residentId">
@@ -201,50 +218,13 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="memberDialogVisible = false">取消</el-button>
+        <el-button @click="memberDrawerVisible = false">取消</el-button>
         <el-button type="primary" @click="handleSubmitMember">确定</el-button>
       </template>
-    </el-dialog>
+    </el-drawer>
 
-    <!-- 选择村民弹窗 -->
-    <el-dialog v-model="residentDialogVisible" title="选择村民" width="700px" destroy-on-close>
-      <div class="filter-bar" style="margin-bottom: 16px">
-        <el-form :inline="true" :model="residentQuery">
-          <el-form-item label="身份证号">
-            <el-input v-model="residentQuery.idCard" placeholder="身份证号" clearable style="width: 150px" />
-          </el-form-item>
-          <el-form-item label="姓名">
-            <el-input v-model="residentQuery.name" placeholder="姓名" clearable style="width: 120px" />
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" @click="loadResidents">查询</el-button>
-          </el-form-item>
-        </el-form>
-      </div>
-      <el-table :data="residentList" stripe border size="small" max-height="300" @row-click="handleResidentSelect" highlight-current-row>
-        <el-table-column type="index" label="序号" width="50" align="center"/>
-        <el-table-column prop="name" label="姓名" width="80" />
-        <el-table-column prop="idCard" label="身份证号" width="170" />
-        <el-table-column prop="gender" label="性别" width="60">
-          <template #default="{ row }">{{ row.gender === 'male' ? '男' : row.gender === 'female' ? '女' : '-' }}</template>
-        </el-table-column>
-        <el-table-column prop="phone" label="电话" width="120" />
-        <el-table-column prop="address" label="住址" min-width="150" show-overflow-tooltip />
-      </el-table>
-      <div class="pagination" style="margin-top: 12px; display: flex; justify-content: flex-end">
-        <el-pagination
-          v-model:current-page="residentQuery.pageNum"
-          v-model:page-size="residentQuery.pageSize"
-          :total="residentTotal"
-          layout="total, prev, pager, next"
-          small
-          @current-change="loadResidents"
-        />
-      </div>
-    </el-dialog>
-
-    <!-- 任务表单弹窗 -->
-    <el-dialog v-model="taskDialogVisible" :title="taskDialogTitle" width="500px" destroy-on-close>
+    <!-- 任务表单抽屉 -->
+    <el-drawer v-model="taskDrawerVisible" :title="taskDrawerTitle" size="600px" destroy-on-close>
       <el-form ref="taskFormRef" :model="taskForm" :rules="taskRules" label-width="100px">
         <el-form-item label="任务内容" prop="content">
           <el-input v-model="taskForm.content" type="textarea" :rows="3" placeholder="请输入任务内容" />
@@ -269,13 +249,13 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="taskDialogVisible = false">取消</el-button>
+        <el-button @click="taskDrawerVisible = false">取消</el-button>
         <el-button type="primary" @click="handleSubmitTask">确定</el-button>
       </template>
-    </el-dialog>
+    </el-drawer>
 
-    <!-- 任务状态更新弹窗 -->
-    <el-dialog v-model="statusDialogVisible" title="更新任务状态" width="400px" destroy-on-close>
+    <!-- 任务状态更新抽屉 -->
+    <el-drawer v-model="statusDrawerVisible" title="更新任务状态" size="500px" destroy-on-close>
       <el-form label-width="100px">
         <el-form-item label="当前状态">
           <el-tag :type="getStatusTag(taskForm.status)">{{ getStatusName(taskForm.status) }}</el-tag>
@@ -290,13 +270,13 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="statusDialogVisible = false">取消</el-button>
+        <el-button @click="statusDrawerVisible = false">取消</el-button>
         <el-button type="primary" @click="handleSubmitStatus">确定</el-button>
       </template>
-    </el-dialog>
+    </el-drawer>
 
-    <!-- 会议表单弹窗 -->
-    <el-dialog v-model="meetingDialogVisible" :title="meetingDialogTitle" width="600px" destroy-on-close>
+    <!-- 会议表单抽屉 -->
+    <el-drawer v-model="meetingDrawerVisible" :title="meetingDrawerTitle" size="1000px" destroy-on-close>
       <el-form ref="meetingFormRef" :model="meetingForm" :rules="meetingRules" label-width="100px">
         <el-form-item label="会议时间" prop="meetingTime">
           <el-date-picker v-model="meetingForm.meetingTime" type="datetime" placeholder="选择日期时间" value-format="YYYY-MM-DD HH:mm:ss" style="width: 100%" />
@@ -318,13 +298,13 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="meetingDialogVisible = false">取消</el-button>
+        <el-button @click="meetingDrawerVisible = false">取消</el-button>
         <el-button type="primary" @click="handleSubmitMeeting">确定</el-button>
       </template>
-    </el-dialog>
+    </el-drawer>
 
-    <!-- 决议转任务弹窗 -->
-    <el-dialog v-model="convertDialogVisible" title="决议转任务" width="500px" destroy-on-close>
+    <!-- 决议转任务抽屉 -->
+    <el-drawer v-model="convertDrawerVisible" title="决议转任务" size="600px" destroy-on-close>
       <el-form ref="convertFormRef" :model="convertForm" :rules="convertRules" label-width="100px">
         <el-form-item label="决议事项">
           <el-input v-model="meetingForm.resolution" type="textarea" :rows="2" disabled />
@@ -342,19 +322,19 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="convertDialogVisible = false">取消</el-button>
+        <el-button @click="convertDrawerVisible = false">取消</el-button>
         <el-button type="primary" @click="handleSubmitConvert">确定</el-button>
       </template>
-    </el-dialog>
+    </el-drawer>
 
-    <!-- 统计弹窗 -->
-    <el-dialog v-model="statsDialogVisible" title="班子统计" width="400px">
+    <!-- 统计抽屉 -->
+    <el-drawer v-model="statsDrawerVisible" title="班子统计" size="400px">
       <el-descriptions :column="1" border>
         <el-descriptions-item label="班子总人数">{{ memberStats.total || 0 }}</el-descriptions-item>
         <el-descriptions-item label="书记人数">{{ memberStats.secretary || 0 }}</el-descriptions-item>
         <el-descriptions-item label="主任人数">{{ memberStats.director || 0 }}</el-descriptions-item>
       </el-descriptions>
-    </el-dialog>
+    </el-drawer>
   </div>
 </template>
 
@@ -375,18 +355,50 @@ const memberList = ref([])
 const memberTotal = ref(0)
 const memberQuery = reactive({ name: '', position: '', pageNum: 1, pageSize: 10 })
 
-const memberDialogVisible = ref(false)
-const memberDialogTitle = ref('新增成员')
+const memberDrawerVisible = ref(false)
+const memberDrawerTitle = ref('新增成员')
 const memberFormRef = ref()
 const memberForm = reactive({ id: null, residentId: null, name: '', gender: '', positionIds: [], phone: '', dividedWork: '', joinDate: '' })
 const memberRules = { name: [{ required: true, message: '请选择或输入姓名', trigger: 'change' }] }
 
+// 村民搜索
+const residentLoading = ref(false)
+const residentOptions = ref([])
+
+// 搜索村民
+const searchResidents = async (keyword) => {
+  if (!keyword) {
+    residentOptions.value = []
+    return
+  }
+  residentLoading.value = true
+  try {
+    const res = await residentApi.search(keyword)
+    residentOptions.value = res.list || []
+  } catch (error) {
+    console.error('搜索村民失败:', error)
+  } finally {
+    residentLoading.value = false
+  }
+}
+
+// 选择村民后自动填充信息
+const handleResidentChange = async (residentId) => {
+  if (!residentId) return
+  const resident = residentOptions.value.find(r => r.id === residentId)
+  if (resident) {
+    memberForm.name = resident.name
+    memberForm.gender = resident.gender
+    memberForm.phone = resident.phone
+  }
+}
+
 const positionList = ref([])
-const statsDialogVisible = ref(false)
+const statsDrawerVisible = ref(false)
 const memberStats = ref({})
 
 // 村民选择
-const residentDialogVisible = ref(false)
+const residentDrawerVisible = ref(false)
 const residentList = ref([])
 const residentTotal = ref(0)
 const residentQuery = reactive({ idCard: '', name: '', pageNum: 1, pageSize: 10 })
@@ -397,13 +409,13 @@ const taskList = ref([])
 const taskTotal = ref(0)
 const taskQuery = reactive({ assigneeId: null, status: '', pageNum: 1, pageSize: 10 })
 
-const taskDialogVisible = ref(false)
-const taskDialogTitle = ref('分配任务')
+const taskDrawerVisible = ref(false)
+const taskDrawerTitle = ref('分配任务')
 const taskFormRef = ref()
 const taskForm = reactive({ id: null, content: '', assigneeId: null, deadline: '', status: 'pending', result: '' })
 const taskRules = { content: [{ required: true, message: '请输入任务内容', trigger: 'blur' }], assigneeId: [{ required: true, message: '请选择接收人', trigger: 'change' }] }
 
-const statusDialogVisible = ref(false)
+const statusDrawerVisible = ref(false)
 const newStatus = ref('')
 const availableStatuses = ref([])
 
@@ -413,13 +425,13 @@ const meetingList = ref([])
 const meetingTotal = ref(0)
 const meetingQuery = reactive({ meetingTime: '', pageNum: 1, pageSize: 10 })
 
-const meetingDialogVisible = ref(false)
-const meetingDialogTitle = ref('新增会议')
+const meetingDrawerVisible = ref(false)
+const meetingDrawerTitle = ref('新增会议')
 const meetingFormRef = ref()
 const meetingForm = reactive({ id: null, meetingTime: '', location: '', attendees: '', content: '', resolution: '', implementation: '' })
 const meetingRules = { meetingTime: [{ required: true, message: '请选择会议时间', trigger: 'change' }] }
 
-const convertDialogVisible = ref(false)
+const convertDrawerVisible = ref(false)
 const convertFormRef = ref()
 const convertForm = reactive({ content: '', assigneeId: null, deadline: '' })
 const convertRules = { content: [{ required: true, message: '请输入任务内容', trigger: 'blur' }], assigneeId: [{ required: true, message: '请选择接收人', trigger: 'change' }] }
@@ -432,31 +444,6 @@ const loadPositions = async () => {
     const res = await positionApi.list()
     positionList.value = res || []
   } catch (e) { ElMessage.error(e.message || '加载职位失败') }
-}
-
-// 村民选择方法
-const handleSelectResident = () => {
-  residentQuery.idCard = ''
-  residentQuery.name = ''
-  residentQuery.pageNum = 1
-  residentDialogVisible.value = true
-  loadResidents()
-}
-
-const loadResidents = async () => {
-  try {
-    const res = await residentApi.list(residentQuery)
-    residentList.value = res.list || []
-    residentTotal.value = res.total || 0
-  } catch (e) { ElMessage.error(e.message || '加载村民列表失败') }
-}
-
-const handleResidentSelect = (row) => {
-  memberForm.residentId = row.id
-  memberForm.name = row.name
-  memberForm.gender = row.gender
-  memberForm.phone = row.phone
-  residentDialogVisible.value = false
 }
 
 // 成员管理方法
@@ -473,16 +460,16 @@ const loadMembers = async () => {
 const resetMemberQuery = () => { memberQuery.name = ''; memberQuery.position = ''; memberQuery.pageNum = 1; loadMembers() }
 
 const handleAddMember = () => {
-  memberDialogTitle.value = '新增成员'
+  memberDrawerTitle.value = '新增成员'
   Object.assign(memberForm, { id: null, residentId: null, name: '', gender: '', positionIds: [], phone: '', dividedWork: '', joinDate: '' })
-  memberDialogVisible.value = true
+  memberDrawerVisible.value = true
 }
 
 const handleEditMember = (row) => {
-  memberDialogTitle.value = '编辑成员'
+  memberDrawerTitle.value = '编辑成员'
   const positionIds = row.positionIds ? row.positionIds.split(',').map(Number).filter(Boolean) : []
   Object.assign(memberForm, { ...row, positionIds })
-  memberDialogVisible.value = true
+  memberDrawerVisible.value = true
 }
 
 const handleSubmitMember = async () => {
@@ -495,7 +482,7 @@ const handleSubmitMember = async () => {
     const submitData = { ...memberForm, positionNames }
     if (memberForm.id) { await twoCommitteeApi.update(submitData); ElMessage.success('更新成功') }
     else { await twoCommitteeApi.create(submitData); ElMessage.success('创建成功') }
-    memberDialogVisible.value = false
+    memberDrawerVisible.value = false
     loadMembers()
   } catch (e) { if (e !== 'cancel') ElMessage.error(e.message || '操作失败') }
 }

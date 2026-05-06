@@ -14,6 +14,11 @@ public class PartyMemberOutputDTO {
     private Long id;
 
     /**
+     * 关联的村民档案ID
+     */
+    private Long residentId;
+
+    /**
      * 身份证号
      */
     private String idCard;

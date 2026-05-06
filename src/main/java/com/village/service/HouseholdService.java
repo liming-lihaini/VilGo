@@ -45,4 +45,9 @@ public interface HouseholdService {
      * 同步所有户主
      */
     void syncAllFromResidents();
+
+    /**
+     * 根据ID获取家庭户
+     */
+    Household getById(Long id);
 }

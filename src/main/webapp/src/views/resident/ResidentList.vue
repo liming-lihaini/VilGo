@@ -52,7 +52,11 @@
       style="width: 100%"
     >
       <el-table-column type="selection" width="55" />
-      <el-table-column prop="name" label="姓名" width="100" />
+      <el-table-column prop="name" label="姓名" width="100">
+        <template #default="{ row }">
+          <el-button type="primary" link @click="handleViewDetails(row)">{{ row.name }}</el-button>
+        </template>
+      </el-table-column>
       <el-table-column prop="idCard" label="身份证号" width="180" />
       <el-table-column prop="gender" label="性别" width="60">
         <template #default="{ row }">
@@ -134,8 +138,8 @@
       />
     </div>
 
-    <!-- 新增/编辑弹窗 -->
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="900px" destroy-on-close>
+    <!-- 新增/编辑抽屉 -->
+    <el-drawer v-model="formDrawerVisible" :title="drawerTitle" size="1000px" destroy-on-close>
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
         <el-row :gutter="20">
           <el-col :span="12">
@@ -224,28 +228,28 @@
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button @click="drawerVisible = false">取消</el-button>
           <el-button type="primary" @click="handleSubmit">确定</el-button>
         </span>
       </template>
-    </el-dialog>
+    </el-drawer>
 
-    <!-- 附件管理弹窗 -->
+    <!-- 附件管理抽屉 -->
     <ResidentAttachment
-      v-model:visible="attachmentDialogVisible"
+      v-model:visible="attachmentDrawerVisible"
       :resident-id="currentResidentId"
       :resident-name="currentResidentName"
     />
 
     <!-- 详情抽屉 -->
     <ResidentDrawer
-      v-model:visible="drawerVisible"
+      v-model:visible="detailDrawerVisible"
       :resident-id="currentResidentId"
     />
 
-    <!-- 导入弹窗 -->
+    <!-- 导入抽屉 -->
     <ResidentImport
-      v-model:visible="importDialogVisible"
+      v-model:visible="importDrawerVisible"
       @success="handleQuery"
     />
   </div>
@@ -281,9 +285,9 @@ const pagination = reactive({
   total: 0
 })
 
-// 弹窗
-const dialogVisible = ref(false)
-const dialogTitle = ref('')
+// 抽屉
+const formDrawerVisible = ref(false)
+const drawerTitle = ref('')
 const formRef = ref(null)
 const formData = reactive({
   id: null,
@@ -311,8 +315,8 @@ const formRules = {
   idCard: [{ required: true, message: '请输入身份证号', trigger: 'blur' }]
 }
 
-// 附件弹窗
-const attachmentDialogVisible = ref(false)
+// 附件抽屉
+const attachmentDrawerVisible = ref(false)
 const currentResidentId = ref(null)
 const currentResidentName = ref('')
 
@@ -320,24 +324,29 @@ const currentResidentName = ref('')
 const handleAttachment = (row) => {
   currentResidentId.value = row.id
   currentResidentName.value = row.name
-  attachmentDialogVisible.value = true
+  attachmentDrawerVisible.value = true
 }
 
 // 详情抽屉
-const drawerVisible = ref(false)
+const detailDrawerVisible = ref(false)
 
-// 导入弹窗
-const importDialogVisible = ref(false)
+// 导入抽屉
+const importDrawerVisible = ref(false)
 
 // 查看详情
 const handleDetail = (row) => {
   currentResidentId.value = row.id
-  drawerVisible.value = true
+  detailDrawerVisible.value = true
+}
+
+// 查看详情（通过姓名链接）
+const handleViewDetails = (row) => {
+  handleDetail(row)
 }
 
 // 导入
 const handleImport = () => {
-  importDialogVisible.value = true
+  importDrawerVisible.value = true
 }
 
 // 人员类型映射
@@ -430,18 +439,18 @@ const handleAdd = () => {
     externalAddress: '',
     remark: ''
   })
-  dialogVisible.value = true
+  formDrawerVisible.value = true
 }
 
 // 编辑
 const handleEdit = async (row) => {
-  dialogTitle.value = '编辑村民'
+  drawerTitle.value = '编辑村民'
   try {
     const result = await residentApi.get(row.id)
     // 将逗号分隔的字符串转换为数组
     result.securityTypeList = result.securityType?.split(',').filter(Boolean) || []
     Object.assign(formData, result)
-    dialogVisible.value = true
+    formDrawerVisible.value = true
   } catch (error) {
     console.error('获取详情失败:', error)
   }
@@ -465,7 +474,7 @@ const handleSubmit = async () => {
           await residentApi.create(submitData)
           ElMessage.success('新增成功')
         }
-        dialogVisible.value = false
+        formDrawerVisible.value = false
         handleQuery()
       } catch (error) {
         ElMessage.error(error.message || '操作失败')

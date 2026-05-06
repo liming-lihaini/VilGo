@@ -10,6 +10,11 @@ import java.time.LocalDate;
 public class ResidentQueryDTO {
 
     /**
+     * 搜索关键字（姓名或身份证号）
+     */
+    private String keyword;
+
+    /**
      * 姓名（模糊查询）
      */
     private String name;

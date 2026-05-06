@@ -1,5 +1,12 @@
 <template>
   <div class="app-main">
+    <!-- 顶部面包屑导航 -->
+    <div class="app-breadcrumb">
+      <el-breadcrumb separator="/">
+        <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item v-if="currentRoute.name">{{ currentRoute.meta.title || currentRoute.name }}</el-breadcrumb-item>
+      </el-breadcrumb>
+    </div>
     <router-view v-slot="{ Component }">
       <transition name="fade" mode="out-in">
         <component :is="Component" />
@@ -9,6 +16,11 @@
 </template>
 
 <script setup>
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+
+const currentRoute = route
 </script>
 
 <style scoped>
@@ -19,6 +31,10 @@
   overflow: auto;
   height: 100vh;
   min-width: 0;
+}
+
+.app-breadcrumb {
+  margin-bottom: 20px;
 }
 
 .fade-enter-active,

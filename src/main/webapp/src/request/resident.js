@@ -152,5 +152,16 @@ export const residentApi = {
       url: `/resident/attachment/${id}`,
       method: 'delete'
     })
+  },
+
+  /**
+   * 搜索村民（用于下拉选择）
+   */
+  search(keyword) {
+    return request({
+      url: '/resident/search',
+      method: 'post',
+      data: { keyword, pageNum: 1, pageSize: 20 }
+    })
   }
 }

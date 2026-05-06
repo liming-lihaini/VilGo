@@ -174,4 +174,18 @@ public class ResidentController {
                 .sheet()
                 .doWrite(java.util.Collections.emptyList());
     }
+
+    /**
+     * 搜索村民（用于下拉选择）
+     */
+    @PostMapping("/search")
+    public Result<Map<String, Object>> search(@RequestBody ResidentQueryDTO dto) {
+        log.info("搜索村民，keyword={}", dto.getKeyword());
+        List<Resident> list = residentService.list(dto);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("list", list);
+        result.put("total", list.size());
+        return Result.success(result);
+    }
 }

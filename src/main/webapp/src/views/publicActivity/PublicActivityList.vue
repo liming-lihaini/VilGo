@@ -101,8 +101,8 @@
       </el-tab-pane>
     </el-tabs>
 
-    <!-- 活动表单弹窗 -->
-    <el-dialog v-model="activityDialogVisible" :title="activityDialogTitle" width="600px" destroy-on-close>
+    <!-- 活动表单抽屉 -->
+    <el-drawer v-model="activityDrawerVisible" :title="activityDrawerTitle" size="1000px" destroy-on-close>
       <el-form ref="activityFormRef" :model="activityForm" :rules="activityRules" label-width="100px">
         <el-form-item label="活动名称" prop="name">
           <el-input v-model="activityForm.name" placeholder="请输入活动名称" />
@@ -125,10 +125,10 @@
           <el-input v-model="activityForm.location" placeholder="请输入活动地点" />
         </el-form-item>
         <el-form-item label="活动内容">
-          <el-input v-model="activityForm.content" type="textarea" :rows="3" placeholder="请输入活动内容" />
+          <WangEditor v-model="activityForm.content" placeholder="请输入活动内容" />
         </el-form-item>
         <el-form-item label="报名要求">
-          <el-input v-model="activityForm.requirement" type="textarea" :rows="2" placeholder="请输入报名要求" />
+          <WangEditor v-model="activityForm.requirement" placeholder="请输入报名要求" />
         </el-form-item>
         <el-form-item label="活动状态" v-if="activityForm.id">
           <el-select v-model="activityForm.status" placeholder="请选择" style="width: 100%">
@@ -138,17 +138,17 @@
           </el-select>
         </el-form-item>
         <el-form-item label="活动总结" v-if="activityForm.status === 'archived'">
-          <el-input v-model="activityForm.summary" type="textarea" :rows="3" placeholder="请输入活动总结" />
+          <WangEditor v-model="activityForm.summary" placeholder="请输入活动总结" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="activityDialogVisible = false">取消</el-button>
+        <el-button @click="activityDrawerVisible = false">取消</el-button>
         <el-button type="primary" @click="handleSubmitActivity">确定</el-button>
       </template>
-    </el-dialog>
+    </el-drawer>
 
-    <!-- 报名管理弹窗 -->
-    <el-dialog v-model="signupDialogVisible" :title="signupDialogTitle" width="900px" destroy-on-close>
+    <!-- 报名管理抽屉 -->
+    <el-drawer v-model="signupDrawerVisible" :title="signupDrawerTitle" size="1000px" destroy-on-close>
       <div class="toolbar" style="margin-bottom: 16px">
         <el-button type="primary" @click="handleAddSignup">添加报名</el-button>
       </div>
@@ -173,10 +173,10 @@
           </template>
         </el-table-column>
       </el-table>
-    </el-dialog>
+    </el-drawer>
 
-    <!-- 添加报名弹窗 -->
-    <el-dialog v-model="addSignupDialogVisible" title="添加报名" width="600px" destroy-on-close>
+    <!-- 添加报名抽屉 -->
+    <el-drawer v-model="addSignupDrawerVisible" title="添加报名" size="600px" destroy-on-close>
       <el-form ref="signupFormRef" :model="signupForm" :rules="signupRules" label-width="100px">
         <el-form-item label="选择村民" prop="residentId">
           <div style="display: flex; gap: 8px; width: 100%">
@@ -195,13 +195,13 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="addSignupDialogVisible = false">取消</el-button>
+        <el-button @click="addSignupDrawerVisible = false">取消</el-button>
         <el-button type="primary" @click="handleSubmitSignup">确定</el-button>
       </template>
-    </el-dialog>
+    </el-drawer>
 
-    <!-- 选择村民弹窗 -->
-    <el-dialog v-model="residentDialogVisible" title="选择村民" width="700px" destroy-on-close>
+    <!-- 选择村民对话框 -->
+    <el-dialog v-model="residentDrawerVisible" title="选择村民" width="700px" destroy-on-close>
       <div class="filter-bar" style="margin-bottom: 16px">
         <el-form :inline="true" :model="residentQuery">
           <el-form-item label="身份证号">
@@ -245,6 +245,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { publicActivityApi } from '@/request/publicActivity'
 import { activitySignupApi } from '@/request/activitySignup'
 import { residentApi } from '@/request/resident'
+import WangEditor from '@/components/WangEditor.vue'
 
 const activeTab = ref('activity')
 
@@ -254,26 +255,26 @@ const activityList = ref([])
 const activityTotal = ref(0)
 const activityQuery = reactive({ name: '', activityType: '', status: '', pageNum: 1, pageSize: 10 })
 
-const activityDialogVisible = ref(false)
-const activityDialogTitle = ref('发起活动')
+const activityDrawerVisible = ref(false)
+const activityDrawerTitle = ref('发起活动')
 const activityFormRef = ref()
 const activityForm = reactive({ id: null, name: '', activityType: '', startTime: '', endTime: '', location: '', content: '', requirement: '', status: 'pending', summary: '' })
 const activityRules = { name: [{ required: true, message: '请输入活动名称', trigger: 'blur' }], startTime: [{ required: true, message: '请选择开始时间', trigger: 'change' }], endTime: [{ required: true, message: '请选择结束时间', trigger: 'change' }] }
 
 // 报名管理
-const signupDialogVisible = ref(false)
-const signupDialogTitle = ref('报名管理')
+const signupDrawerVisible = ref(false)
+const signupDrawerTitle = ref('报名管理')
 const currentActivity = ref({})
 const signupLoading = ref(false)
 const signupList = ref([])
 
-const addSignupDialogVisible = ref(false)
+const addSignupDrawerVisible = ref(false)
 const signupFormRef = ref()
 const signupForm = reactive({ id: null, activityId: null, residentId: null, residentName: '', workHours: 0, workValue: 0, remark: '' })
 const signupRules = { residentId: [{ required: true, message: '请选择村民', trigger: 'change' }] }
 
 // 村民选择
-const residentDialogVisible = ref(false)
+const residentDrawerVisible = ref(false)
 const residentList = ref([])
 const residentTotal = ref(0)
 const residentQuery = reactive({ idCard: '', name: '', pageNum: 1, pageSize: 10 })
@@ -298,15 +299,15 @@ const loadActivities = async () => {
 const resetActivityQuery = () => { activityQuery.name = ''; activityQuery.activityType = ''; activityQuery.status = ''; activityQuery.pageNum = 1; loadActivities() }
 
 const handleAddActivity = () => {
-  activityDialogTitle.value = '发起活动'
+  activityDrawerTitle.value = '发起活动'
   Object.assign(activityForm, { id: null, name: '', activityType: '', startTime: '', endTime: '', location: '', content: '', requirement: '', status: 'pending', summary: '' })
-  activityDialogVisible.value = true
+  activityDrawerVisible.value = true
 }
 
 const handleEditActivity = (row) => {
-  activityDialogTitle.value = '编辑活动'
+  activityDrawerTitle.value = '编辑活动'
   Object.assign(activityForm, row)
-  activityDialogVisible.value = true
+  activityDrawerVisible.value = true
 }
 
 const handleSubmitActivity = async () => {
@@ -314,7 +315,7 @@ const handleSubmitActivity = async () => {
     await activityFormRef.value.validate()
     if (activityForm.id) { await publicActivityApi.update(activityForm); ElMessage.success('更新成功') }
     else { await publicActivityApi.create(activityForm); ElMessage.success('创建成功') }
-    activityDialogVisible.value = false
+    activityDrawerVisible.value = false
     loadActivities()
   } catch (e) { if (e !== 'cancel') ElMessage.error(e.message || '操作失败') }
 }
@@ -330,8 +331,8 @@ const handleDeleteActivity = async (row) => {
 
 const handleSignupManage = (row) => {
   currentActivity.value = row
-  signupDialogTitle.value = row.name + ' - 报名管理'
-  signupDialogVisible.value = true
+  signupDrawerTitle.value = row.name + ' - 报名管理'
+  signupDrawerVisible.value = true
   loadSignups(row.id)
 }
 
@@ -346,14 +347,14 @@ const loadSignups = async (activityId) => {
 
 const handleAddSignup = () => {
   Object.assign(signupForm, { id: null, activityId: currentActivity.value.id, residentId: null, residentName: '', workHours: 0, workValue: 0, remark: '' })
-  addSignupDialogVisible.value = true
+  addSignupDrawerVisible.value = true
 }
 
 const handleSelectResident = () => {
   residentQuery.idCard = ''
   residentQuery.name = ''
   residentQuery.pageNum = 1
-  residentDialogVisible.value = true
+  residentDrawerVisible.value = true
   loadResidents()
 }
 
@@ -368,7 +369,7 @@ const loadResidents = async () => {
 const handleResidentSelect = (row) => {
   signupForm.residentId = row.id
   signupForm.residentName = row.name
-  residentDialogVisible.value = false
+  residentDrawerVisible.value = false
 }
 
 const handleSubmitSignup = async () => {
@@ -376,14 +377,14 @@ const handleSubmitSignup = async () => {
     await signupFormRef.value.validate()
     await activitySignupApi.create(signupForm)
     ElMessage.success('报名成功')
-    addSignupDialogVisible.value = false
+    addSignupDrawerVisible.value = false
     loadSignups(currentActivity.value.id)
   } catch (e) { ElMessage.error(e.message || '操作失败') }
 }
 
 const handleEditSignup = async (row) => {
   Object.assign(signupForm, { ...row, residentName: '' })
-  addSignupDialogVisible.value = true
+  addSignupDrawerVisible.value = true
 }
 
 const handleSignIn = async (row) => {

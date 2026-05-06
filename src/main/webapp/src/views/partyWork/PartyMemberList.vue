@@ -37,7 +37,11 @@
       border
       style="width: 100%"
     >
-      <el-table-column prop="name" label="姓名" width="100" />
+      <el-table-column prop="name" label="姓名" width="100">
+        <template #default="{ row }">
+          <el-button type="primary" link @click="handleViewDetails(row)">{{ row.name }}</el-button>
+        </template>
+      </el-table-column>
       <el-table-column prop="idCard" label="身份证号" width="180" />
       <el-table-column prop="gender" label="性别" width="60">
         <template #default="{ row }">
@@ -82,10 +86,35 @@
       />
     </div>
 
-    <!-- 新增/编辑弹窗 -->
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="700px" destroy-on-close>
+    <!-- 新增/编辑抽屉 -->
+    <el-drawer v-model="drawerVisible" :title="drawerTitle" size="1000px" destroy-on-close>
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
         <el-row :gutter="20">
+          <el-col :span="24">
+            <el-form-item label="选择村民" prop="residentId">
+              <el-select
+                v-model="formData.residentId"
+                filterable
+                remote
+                :remote-method="searchResidents"
+                :loading="residentLoading"
+                placeholder="搜索村民姓名或身份证号"
+                @change="handleResidentChange"
+                style="width: 100%"
+                :disabled="!!formData.id"
+              >
+                <el-option
+                  v-for="resident in residentOptions"
+                  :key="resident.id"
+                  :label="resident.name"
+                  :value="resident.id"
+                >
+                  <span>{{ resident.name }}</span>
+                  <span style="color: #999; font-size: 12px; margin-left: 8px">{{ resident.idCard }}</span>
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
           <el-col :span="12">
             <el-form-item label="身份证号" prop="idCard">
               <el-input v-model="formData.idCard" placeholder="请输入身份证号" :disabled="!!formData.id" />
@@ -126,7 +155,7 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="转正时间" prop="convertDate">
-              <el-date-picker v-model="formData.convertDate" type="date" placeholder="选择日期" value-format="YYYY-MM-DD" style="width: 100%" />
+              <el-date-picker v-model="formData.convertDate" type="date" placeholder="选��日期" value-format="YYYY-MM-DD" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -143,14 +172,14 @@
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button @click="drawerVisible = false">取消</el-button>
           <el-button type="primary" @click="handleSubmit">确定</el-button>
         </span>
       </template>
-    </el-dialog>
+    </el-drawer>
 
-    <!-- 状态变更弹窗 -->
-    <el-dialog v-model="statusDialogVisible" title="党员状态变更" width="400px" destroy-on-close>
+    <!-- 状态变更抽屉 -->
+    <el-drawer v-model="statusDrawerVisible" title="党员状态变更" size="500px" destroy-on-close>
       <el-form label-width="100px">
         <el-form-item label="当前状态">
           <el-tag :type="getStatusType(currentRow.status)">
@@ -173,11 +202,14 @@
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="statusDialogVisible = false">取消</el-button>
+          <el-button @click="statusDrawerVisible = false">取消</el-button>
           <el-button type="primary" @click="handleStatusSubmit">确定</el-button>
         </span>
       </template>
-    </el-dialog>
+    </el-drawer>
+
+    <!-- 村民档案详情 -->
+    <ResidentDrawer v-model:visible="drawerVisible" :resident-id="currentResidentId" />
   </div>
 </template>
 
@@ -185,6 +217,8 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { partyWorkApi } from '@/request/partyWork'
+import { residentApi } from '@/request/resident'
+import ResidentDrawer from '@/views/resident/ResidentDrawer.vue'
 
 // 查询表单
 const queryForm = reactive({
@@ -204,12 +238,13 @@ const pagination = reactive({
   total: 0
 })
 
-// 弹窗
-const dialogVisible = ref(false)
-const dialogTitle = ref('')
+// 抽屉
+const drawerVisible = ref(false)
+const drawerTitle = ref('')
 const formRef = ref(null)
 const formData = reactive({
   id: null,
+  residentId: null,
   idCard: '',
   name: '',
   gender: 'male',
@@ -221,15 +256,29 @@ const formData = reactive({
   status: 'activist'
 })
 
+// 村民搜索
+const residentLoading = ref(false)
+const residentOptions = ref([])
+
 // 表单校验
 const formRules = {
-  idCard: [{ required: true, message: '请输入身份证号', trigger: 'blur' }]
+  residentId: [{ required: true, message: '请选择村民', trigger: 'change' }]
 }
 
-// 状态变更弹窗
-const statusDialogVisible = ref(false)
+// 状态变更抽屉
+const statusDrawerVisible = ref(false)
 const currentRow = ref({})
 const newStatus = ref('')
+
+// 村民档案详情
+const drawerVisible = ref(false)
+const currentResidentId = ref(null)
+
+// 查看详情
+const handleViewDetails = (row) => {
+  currentResidentId.value = row.residentId || row.id
+  drawerVisible.value = true
+}
 
 // 生命周期
 onMounted(() => {
@@ -246,10 +295,8 @@ const handleQuery = async () => {
       pageSize: pagination.pageSize
     }
     const res = await partyWorkApi.listMembers(params)
-    if (res.code === 0) {
-      tableData.value = res.data.list || []
-      pagination.total = res.data.total || 0
-    }
+    tableData.value = res.list || []
+    pagination.total = res.total || 0
   } catch (error) {
     console.error('查询失败', error)
   } finally {
@@ -266,29 +313,25 @@ const handleReset = () => {
 
 const handleAdd = () => {
   resetForm()
-  dialogTitle.value = '新增党员'
-  dialogVisible.value = true
+  drawerTitle.value = '新增党员'
+  drawerVisible.value = true
 }
 
 const handleEdit = (row) => {
   Object.assign(formData, row)
-  dialogTitle.value = '编辑党员'
-  dialogVisible.value = true
+  drawerTitle.value = '编辑党员'
+  drawerVisible.value = true
 }
 
 const handleSubmit = async () => {
   try {
     await formRef.value.validate()
-    const res = formData.id ? await partyWorkApi.updateMember(formData) : await partyWorkApi.createMember(formData)
-    if (res.code === 0) {
-      ElMessage.success(formData.id ? '更新成功' : '新增成功')
-      dialogVisible.value = false
-      handleQuery()
-    } else {
-      ElMessage.error(res.msg || '操作失败')
-    }
+    await partyWorkApi.createMember(formData)
+    ElMessage.success(formData.id ? '更新成功' : '新增成功')
+    drawerVisible.value = false
+    handleQuery()
   } catch (error) {
-    console.error('操作失败', error)
+    ElMessage.error(error.message || '操作失败')
   }
 }
 
@@ -299,15 +342,11 @@ const handleDelete = (row) => {
     type: 'warning'
   }).then(async () => {
     try {
-      const res = await partyWorkApi.deleteMember(row.id)
-      if (res.code === 0) {
-        ElMessage.success('删除成功')
-        handleQuery()
-      } else {
-        ElMessage.error(res.msg || '删除失败')
-      }
+      await partyWorkApi.deleteMember(row.id)
+      ElMessage.success('删除成功')
+      handleQuery()
     } catch (error) {
-      console.error('删除失败', error)
+      ElMessage.error(error.message || '删除失败')
     }
   })
 }
@@ -315,7 +354,7 @@ const handleDelete = (row) => {
 const handleStatusChange = (row) => {
   currentRow.value = row
   newStatus.value = ''
-  statusDialogVisible.value = true
+  statusDrawerVisible.value = true
 }
 
 const handleStatusSubmit = async () => {
@@ -324,21 +363,18 @@ const handleStatusSubmit = async () => {
     return
   }
   try {
-    const res = await partyWorkApi.updateMemberStatus(currentRow.value.id, newStatus.value)
-    if (res.code === 0) {
-      ElMessage.success('状态变更成功')
-      statusDialogVisible.value = false
-      handleQuery()
-    } else {
-      ElMessage.error(res.msg || '状态变更失败')
-    }
+    await partyWorkApi.updateMemberStatus(currentRow.value.id, newStatus.value)
+    ElMessage.success('状态变更成功')
+    statusDrawerVisible.value = false
+    handleQuery()
   } catch (error) {
-    console.error('状态变更失败', error)
+    ElMessage.error(error.message || '状态变更失败')
   }
 }
 
 const resetForm = () => {
   formData.id = null
+  formData.residentId = null
   formData.idCard = ''
   formData.name = ''
   formData.gender = 'male'
@@ -348,6 +384,38 @@ const resetForm = () => {
   formData.joinDate = ''
   formData.convertDate = ''
   formData.status = 'activist'
+  residentOptions.value = []
+}
+
+// 搜索村民
+const searchResidents = async (keyword) => {
+  if (!keyword) {
+    residentOptions.value = []
+    return
+  }
+  residentLoading.value = true
+  try {
+    const res = await residentApi.search(keyword)
+    residentOptions.value = res.list || []
+  } catch (error) {
+    console.error('搜索村民失败:', error)
+  } finally {
+    residentLoading.value = false
+  }
+}
+
+// 选择村民后自动填充信息
+const handleResidentChange = async (residentId) => {
+  if (!residentId) return
+  const resident = residentOptions.value.find(r => r.id === residentId)
+  if (resident) {
+    formData.idCard = resident.idCard
+    formData.name = resident.name
+    formData.gender = resident.gender
+    formData.birthDate = resident.birthDate
+    formData.phone = resident.phone
+    formData.address = resident.address
+  }
 }
 
 // 工具方法

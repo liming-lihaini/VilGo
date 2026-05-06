@@ -21,6 +21,12 @@ public interface HouseholdMemberDao extends BaseMapper<HouseholdMember> {
     /**
      * 查询某村民是否已是某家庭户成员
      */
-    @Select("SELECT COUNT(*) FROM household_members WHERE resident_id = #{residentId} AND household_id != #{excludeHouseholdId} AND deleted = 0")
+    @Select("SELECT COUNT(*) FROM household_members WHERE resident_id = #{residentId}  AND deleted = 0")
     int countByResidentIdExcludeHousehold(@Param("residentId") Long residentId, @Param("excludeHouseholdId") Long excludeHouseholdId);
+
+    /**
+     * 根据村民ID查询家庭成员记录
+     */
+    @Select("SELECT * FROM household_members WHERE resident_id = #{residentId} AND deleted = 0 LIMIT 1")
+    HouseholdMember selectByResidentId(@Param("residentId") Long residentId);
 }

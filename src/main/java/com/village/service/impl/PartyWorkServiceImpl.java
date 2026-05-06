@@ -147,6 +147,14 @@ public class PartyWorkServiceImpl implements PartyWorkService {
     }
 
     @Override
+    public PartyMember getByResidentId(Long residentId) {
+        LambdaQueryWrapper<PartyMember> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(PartyMember::getDeleted, 0);
+        wrapper.eq(PartyMember::getResidentId, residentId);
+        return partyMemberDao.selectOne(wrapper);
+    }
+
+    @Override
     public List<PartyMemberOutputDTO> list(PartyMemberQueryDTO dto) {
         LambdaQueryWrapper<PartyMember> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(PartyMember::getDeleted, 0);

@@ -18,7 +18,7 @@
       </el-table-column>
     </el-table>
 
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="400px" destroy-on-close>
+    <el-drawer v-model="drawerVisible" :title="drawerTitle" size="1000px" destroy-on-close>
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="职位名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入职位名称" />
@@ -31,10 +31,10 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button @click="drawerVisible = false">取消</el-button>
         <el-button type="primary" @click="handleSubmit">确定</el-button>
       </template>
-    </el-dialog>
+    </el-drawer>
   </div>
 </template>
 
@@ -45,8 +45,8 @@ import { positionApi } from '@/request/position'
 
 const loading = ref(false)
 const tableData = ref([])
-const dialogVisible = ref(false)
-const dialogTitle = ref('新增职位')
+const drawerVisible = ref(false)
+const drawerTitle = ref('新增职位')
 const formRef = ref()
 const form = reactive({ id: null, name: '', code: '', sortOrder: 0 })
 const rules = { name: [{ required: true, message: '请输入职位名称', trigger: 'blur' }] }
@@ -68,13 +68,13 @@ const loadData = async () => {
 const handleAdd = () => {
   dialogTitle.value = '新增职位'
   Object.assign(form, { id: null, name: '', code: '', sortOrder: 0 })
-  dialogVisible.value = true
+  drawerVisible.value = true
 }
 
 const handleEdit = (row) => {
   dialogTitle.value = '编辑职位'
   Object.assign(form, row)
-  dialogVisible.value = true
+  drawerVisible.value = true
 }
 
 const handleSubmit = async () => {
@@ -87,7 +87,7 @@ const handleSubmit = async () => {
       await positionApi.create(form)
       ElMessage.success('创建成功')
     }
-    dialogVisible.value = false
+    drawerVisible.value = false
     loadData()
   } catch (e) {
     if (e !== 'cancel') {

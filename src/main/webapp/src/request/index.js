@@ -26,9 +26,11 @@ request.interceptors.response.use(
       return response.data
     }
     const res = response.data
-    if (res.code !== 200) {
-      return Promise.reject(new Error(res.message || 'Error'))
+    // 支持 code: 0 和 code: 200 两种成功标识
+    if (res.code !== 0 && res.code !== 200) {
+      return Promise.reject(new Error(res.msg || res.message || 'Error'))
     }
+    // 返回 data 部分
     return res.data
   },
   error => {

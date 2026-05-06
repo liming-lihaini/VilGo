@@ -85,5 +85,16 @@ export const specialGroupApi = {
       url: `/specialGroup/help/list/${specialGroupId}`,
       method: 'get'
     })
+  },
+
+  /**
+   * 根据村民ID获取特殊人群记录
+   */
+  getByResidentId(residentId) {
+    return request({
+      url: `/specialGroup/list`,
+      method: 'post',
+      data: { residentId, pageNum: 1, pageSize: 100 }
+    })
   }
 }

@@ -269,6 +269,10 @@ public class ResidentServiceImpl implements ResidentService {
         if (dto.getBirthDateEnd() != null) {
             wrapper.le(Resident::getBirthDate, dto.getBirthDateEnd());
         }
+        if (dto.getKeyword() != null) {
+            wrapper.and(w -> w.like(Resident::getName, dto.getKeyword())
+                    .or().like(Resident::getIdCard, dto.getKeyword()));
+        }
 
         return wrapper;
     }

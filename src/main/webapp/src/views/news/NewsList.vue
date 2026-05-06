@@ -1,5 +1,12 @@
 <template>
   <div class="news-list">
+    <!-- 操作栏 -->
+    <div class="toolbar">
+      <el-button type="primary" @click="handleAddNews('')">
+        <el-icon><Plus /></el-icon>添加新闻
+      </el-button>
+    </div>
+
     <!-- 轮播图区域 -->
     <div class="carousel-section">
       <el-carousel :interval="5000" type="card" height="280px" indicator-position="outside">
@@ -22,74 +29,121 @@
 
     <!-- 按分类分区的新闻列表 -->
     <div class="category-sections">
-      <div
-        v-for="category in categories"
-        :key="category.code"
-        class="category-section"
-      >
-        <div class="section-header">
-          <div class="section-title">
-            <span class="title-text">{{ category.name }}</span>
-            <span class="news-count">共 {{ getCategoryCount(category.code) }} 条</span>
-          </div>
-          <el-button type="primary" size="small" @click="handleAddNews(category.code)">
-            <el-icon><Plus /></el-icon>添加
-          </el-button>
-        </div>
-
-        <div class="news-list-container">
-          <template v-if="getNewsByCategory(category.code).length > 0">
-            <div
-              v-for="news in getNewsByCategory(category.code)"
-              :key="news.id"
-              class="news-item"
-              @click="handleView(news)"
-            >
-              <div class="news-thumb">
-                <img :src="news.coverImage || defaultCover" />
+      <el-row :gutter="20">
+        <el-col
+          v-for="category in categories"
+          :key="category.code"
+          :span="12"
+          class="category-col"
+        >
+          <div class="category-section">
+            <div class="section-header">
+              <div class="section-title">
+                <span class="title-text">{{ category.name }}</span>
+                <span class="news-count">共 {{ getCategoryCount(category.code) }} 条</span>
               </div>
-              <div class="news-info">
-                <h3 class="news-title">{{ news.title }}</h3>
-                <div v-if="news.keywords" class="news-tags">
-                  <el-tag
-                    v-for="keyword in getKeywords(news.keywords)"
-                    :key="keyword"
-                    size="small"
-                    type="info"
-                  >
-                    {{ keyword }}
-                  </el-tag>
-                </div>
-                <div class="news-meta">
-                  <span><el-icon><Clock /></el-icon> {{ news.publishTime }}</span>
-                  <span><el-icon><User /></el-icon> {{ news.creator }}</span>
-                </div>
-              </div>
-              <div class="news-actions" @click.stop>
-                <el-button link type="primary" size="small" @click="handleEdit(news)">编辑</el-button>
-                <el-button link type="danger" size="small" @click="handleDelete(news)">删除</el-button>
-              </div>
+              <el-button type="primary" size="small" @click="handleViewMore(category.code)">
+                <el-icon><More /></el-icon>更多
+              </el-button>
             </div>
-          </template>
-          <el-empty
-            v-else
-            description="暂无新闻，点击添加按钮发布"
-            :image-size="60"
-          />
-        </div>
-      </div>
+
+            <div class="news-list-container">
+              <template v-if="getNewsByCategory(category.code).length > 0">
+                <div
+                  v-for="news in getNewsByCategory(category.code)"
+                  :key="news.id"
+                  class="news-item"
+                  @click="handleView(news)"
+                >
+                  <div class="news-thumb">
+                    <img :src="news.coverImage || defaultCover" />
+                  </div>
+                  <div class="news-info">
+                    <h3 class="news-title">{{ news.title }}</h3>
+                    <div v-if="news.keywords" class="news-tags">
+                      <el-tag
+                        v-for="keyword in getKeywords(news.keywords)"
+                        :key="keyword"
+                        size="small"
+                        type="info"
+                      >
+                        {{ keyword }}
+                      </el-tag>
+                    </div>
+                    <div class="news-meta">
+                      <span><el-icon><Clock /></el-icon> {{ news.publishTime }}</span>
+                      <span><el-icon><User /></el-icon> {{ news.creator }}</span>
+                    </div>
+                  </div>
+                  <div class="news-actions" @click.stop>
+                    <el-button link type="primary" size="small" @click="handleEdit(news)">编辑</el-button>
+                    <el-button link type="danger" size="small" @click="handleDelete(news)">删除</el-button>
+                  </div>
+                </div>
+              </template>
+              <el-empty
+                v-else
+                description="暂无新闻，点击添加按钮发布"
+                :image-size="60"
+              />
+            </div>
+          </div>
+        </el-col>
+      </el-row>
     </div>
 
-    <!-- 新闻表单对话框 -->
+    <!-- 更多新闻抽屉 -->
+    <el-drawer v-model="moreDrawerVisible" :title="currentCategoryName + ' - 更多新闻'" size="1000px">
+      <div v-if="moreDrawerVisible" class="more-news-list">
+        <div
+          v-for="news in moreNewsList"
+          :key="news.id"
+          class="news-item"
+          @click="handleView(news)"
+        >
+          <div class="news-thumb">
+            <img :src="news.coverImage || defaultCover" />
+          </div>
+          <div class="news-info">
+            <h3 class="news-title">{{ news.title }}</h3>
+            <div v-if="news.keywords" class="news-tags">
+              <el-tag v-for="keyword in getKeywords(news.keywords)" :key="keyword" size="small" type="info">
+                {{ keyword }}
+              </el-tag>
+            </div>
+            <div class="news-meta">
+              <span><el-icon><Clock /></el-icon> {{ news.publishTime }}</span>
+              <span><el-icon><User /></el-icon> {{ news.creator }}</span>
+            </div>
+          </div>
+          <div class="news-actions" @click.stop>
+            <el-button link type="primary" size="small" @click="handleEdit(news)">编辑</el-button>
+            <el-button link type="danger" size="small" @click="handleDelete(news)">删除</el-button>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <el-pagination
+          v-if="moreTotal > morePageSize"
+          :current-page="morePageNum"
+          :page-size="morePageSize"
+          :total="moreTotal"
+          layout="prev, pager, next, total"
+          @current-change="handleMorePageChange"
+        />
+      </template>
+    </el-drawer>
+
+    <!-- 新闻表单抽屉 -->
     <NewsForm
-      v-model:visible="formVisible"
+      v-model:visible="formDrawerVisible"
       :news="currentNews"
       :default-category="defaultCategory"
       @success="handleFormSuccess"
     />
 
-    <!-- 新闻详情对话框 -->
-    <el-dialog v-model="detailVisible" title="新闻详情" width="900px">
+    <!-- 新闻详情抽屉 -->
+    <el-drawer v-model="detailDrawerVisible" title="新闻详情" size="1000px">
       <div v-if="currentNews" class="news-detail">
         <div class="detail-header">
           <h1 class="detail-title">{{ currentNews.title }}</h1>
@@ -109,24 +163,33 @@
         </div>
         <div class="detail-content" v-html="currentNews.content"></div>
       </div>
-    </el-dialog>
+    </el-drawer>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Document, User, Clock, Plus } from '@element-plus/icons-vue'
+import { Document, User, Clock, More, Plus } from '@element-plus/icons-vue'
 import NewsForm from './NewsForm.vue'
 import { newsApi } from '@/request/news'
 
 const newsLoading = ref(false)
 const newsList = ref([])
 const carouselList = ref([])
-const formVisible = ref(false)
-const detailVisible = ref(false)
+const formDrawerVisible = ref(false)
+const detailDrawerVisible = ref(false)
 const currentNews = ref(null)
 const defaultCategory = ref('')
+
+// 更多新闻抽屉相关变量
+const moreDrawerVisible = ref(false)
+const moreNewsList = ref([])
+const morePageNum = ref(1)
+const morePageSize = ref(10)
+const moreTotal = ref(0)
+const moreCategory = ref('')
+const currentCategoryName = ref('')
 
 const defaultCover = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjRmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGR5PSIuM2VtIiBmaWxsPSIjOTAzOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjIwIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiI+5paw6YCa55CG5LiLPC90ZXh0Pjwvc3ZnPg=='
 
@@ -165,29 +228,64 @@ async function loadNews() {
   }
 }
 
+/**
+ * 获取指定分类的新闻数量
+ *
+ * @param {string} categoryCode - 分类代码
+ * @returns {number} 该分类下的新闻数量
+ */
 function getCategoryCount(categoryCode) {
   return newsList.value.filter(n => n.category === categoryCode).length
 }
 
 function getNewsByCategory(categoryCode) {
-  return newsList.value.filter(n => n.category === categoryCode).slice(0, 10)
+  return newsList.value.filter(n => n.category === categoryCode).slice(0, 5)
+}
+
+async function handleViewMore(category) {
+  moreCategory.value = category
+  currentCategoryName.value = getCategoryName(category)
+  morePageNum.value = 1
+  await loadMoreNews()
+  moreDrawerVisible.value = true
+}
+
+async function loadMoreNews() {
+  try {
+    const query = {
+      pageNum: morePageNum.value,
+      pageSize: morePageSize.value,
+      category: moreCategory.value
+    }
+    const response = await newsApi.list(query)
+    moreNewsList.value = response.list || []
+    moreTotal.value = response.total || 0
+  } catch (error) {
+    console.error('加载更多新闻失败:', error)
+    ElMessage.error('加载更多新闻失败')
+  }
+}
+
+async function handleMorePageChange(page) {
+  morePageNum.value = page
+  await loadMoreNews()
 }
 
 function handleAddNews(category) {
   defaultCategory.value = category
   currentNews.value = null
-  formVisible.value = true
+  formDrawerVisible.value = true
 }
 
 function handleEdit(row) {
   defaultCategory.value = ''
   currentNews.value = { ...row }
-  formVisible.value = true
+  formDrawerVisible.value = true
 }
 
 function handleView(row) {
   currentNews.value = { ...row }
-  detailVisible.value = true
+  detailDrawerVisible.value = true
 }
 
 async function handleDelete(row) {
@@ -229,6 +327,11 @@ function getKeywords(keywords) {
 
 <style scoped>
 .news-list { padding: 20px; background: #f5f7fa; min-height: 100vh; }
+
+.toolbar { margin-bottom: 20px; }
+
+/* 分类列布局 */
+.category-col { margin-bottom: 20px; }
 
 .carousel-section { margin-bottom: 24px; }
 .carousel-item { position: relative; cursor: pointer; border-radius: 8px; overflow: hidden; height: 100%; }

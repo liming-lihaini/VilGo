@@ -185,6 +185,14 @@ public class HouseholdServiceImpl implements HouseholdService {
         // 检查是否已存在
         Household existing = householdDao.selectByHeadId(residentId);
         if (existing != null) {
+            // 更新已存在的家庭户信息
+            existing.setHeadName(resident.getName());
+            existing.setHeadIdCard(resident.getIdCard());
+            existing.setAddress(resident.getAddress());
+            existing.setPhone(resident.getPhone());
+            existing.setUpdateTime(DateUtils.now());
+            householdDao.updateById(existing);
+            log.info("从村民档案更新家庭户信息成功，id={}, householdNo={}", existing.getId(), existing.getHouseholdNo());
             return existing;
         }
 
@@ -219,6 +227,11 @@ public class HouseholdServiceImpl implements HouseholdService {
             syncFromResident(head.getId());
         }
         log.info("同步所有户主完成，共 {} 条", householdHeads.size());
+    }
+
+    @Override
+    public Household getById(Long id) {
+        return householdDao.selectById(id);
     }
 
     /**

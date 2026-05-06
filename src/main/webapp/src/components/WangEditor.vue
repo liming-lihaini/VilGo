@@ -65,13 +65,13 @@ onMounted(() => {
     },
     customInsert: function (insertImg, result, editor) {
       // result 是服务端返回的数据
-      // our backend returns: {"code":200,"message":"操作成功","data":"/uploads/news/xxx.jpg"}
+      // our backend returns: {"code":0,"msg":"操作成功","data":"/uploads/xxx.jpg"}
       console.log('上传结果:', result)
-      if (result && result.code === 200 && result.data) {
+      if ((result.code === 0 || result.code === 200) && result.data) {
         // 插入图片到编辑器，需要完整的 URL
         insertImg(result.data)
       } else {
-        const msg = result?.message || '图片上传失败'
+        const msg = result?.msg || result?.message || '图片上传失败'
         console.error(msg)
         alert(msg)
       }

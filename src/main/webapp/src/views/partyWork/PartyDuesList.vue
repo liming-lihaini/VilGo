@@ -78,8 +78,8 @@
       />
     </div>
 
-    <!-- 新增/编辑弹窗 -->
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="600px" destroy-on-close>
+    <!-- 新增/编辑抽屉 -->
+    <el-drawer v-model="drawerVisible" :title="drawerTitle" size="1000px" destroy-on-close>
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
         <el-row :gutter="20">
           <el-col :span="12">
@@ -121,11 +121,11 @@
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button @click="drawerVisible = false">取消</el-button>
           <el-button type="primary" @click="handleSubmit">确定</el-button>
         </span>
       </template>
-    </el-dialog>
+    </el-drawer>
   </div>
 </template>
 
@@ -152,9 +152,9 @@ const pagination = reactive({
   total: 0
 })
 
-// 弹窗
-const dialogVisible = ref(false)
-const dialogTitle = ref('')
+// 抽屉
+const drawerVisible = ref(false)
+const drawerTitle = ref('')
 const formRef = ref(null)
 const currentMemberName = ref('')
 const formData = reactive({
@@ -222,13 +222,13 @@ const handleReset = () => {
 const handleAdd = () => {
   resetForm()
   dialogTitle.value = '新增党费'
-  dialogVisible.value = true
+  drawerVisible.value = true
 }
 
 const handleEdit = (row) => {
   Object.assign(formData, row)
   dialogTitle.value = '编辑党费'
-  dialogVisible.value = true
+  drawerVisible.value = true
 }
 
 const handleSubmit = async () => {
@@ -237,7 +237,7 @@ const handleSubmit = async () => {
     const res = formData.id ? await partyWorkApi.updateDues(formData) : await partyWorkApi.createDues(formData)
     if (res.code === 0) {
       ElMessage.success(formData.id ? '更新成功' : '新增成功')
-      dialogVisible.value = false
+      drawerVisible.value = false
       handleQuery()
     } else {
       ElMessage.error(res.msg || '操作失败')

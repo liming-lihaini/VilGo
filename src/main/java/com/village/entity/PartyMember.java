@@ -18,6 +18,11 @@ public class PartyMember {
     private Long id;
 
     /**
+     * 关联的村民档案ID
+     */
+    private Long residentId;
+
+    /**
      * 身份证号（唯一标识，关联 residents 表）
      */
     private String idCard;

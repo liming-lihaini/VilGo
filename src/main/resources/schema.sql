@@ -287,6 +287,7 @@ CREATE INDEX IF NOT EXISTS idx_meetings_deleted ON meetings(deleted);
 -- 党员档案表
 CREATE TABLE IF NOT EXISTS party_members (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    resident_id INTEGER,
     id_card VARCHAR(18) NOT NULL UNIQUE,
     name VARCHAR(50),
     gender VARCHAR(10),

@@ -158,4 +158,9 @@ public class HouseholdMemberServiceImpl implements HouseholdMemberService {
             addMember(dto);
         }
     }
+
+    @Override
+    public HouseholdMember getByResidentId(Long residentId) {
+        return householdMemberDao.selectByResidentId(residentId);
+    }
 }

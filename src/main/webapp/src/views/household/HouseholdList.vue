@@ -166,7 +166,7 @@
     </el-drawer>
 
     <!-- 新增/编辑弹窗 -->
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px" destroy-on-close>
+    <el-drawer v-model="DrawerVisible" :title="drawerTitle" size="1000px" destroy-on-close>
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="家庭户编号" prop="householdNo">
           <el-input v-model="form.householdNo" placeholder="请输入家庭户编号" />
@@ -185,13 +185,13 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button @click="drawerVisible = false">取消</el-button>
         <el-button type="primary" @click="handleSubmit">确定</el-button>
       </template>
-    </el-dialog>
+    </el-drawer>
 
-    <!-- 添加成员弹窗 -->
-    <el-dialog v-model="memberDialogVisible" title="添加家庭成员" width="500px" destroy-on-close>
+    <!-- 添加成员对话框 -->
+    <el-dialog v-model="memberDialogVisible" title="添加家庭成员" width="600px" destroy-on-close>
       <el-form :model="memberForm" label-width="100px">
         <el-form-item label="选择村民">
           <el-select
@@ -230,8 +230,8 @@
       </template>
     </el-dialog>
 
-    <!-- 添加收入弹窗 -->
-    <el-dialog v-model="incomeDialogVisible" title="添加年度收入" width="500px" destroy-on-close>
+    <!-- 添加收入对话框 -->
+    <el-dialog v-model="incomeDialogVisible" title="添加年度收入" width="600px" destroy-on-close>
       <el-form ref="incomeFormRef" :model="incomeForm" :rules="incomeRules" label-width="100px">
         <el-form-item label="年份" prop="year">
           <el-select v-model="incomeForm.year" placeholder="请选择">
@@ -257,8 +257,8 @@
       </template>
     </el-dialog>
 
-    <!-- 登记变动弹窗 -->
-    <el-dialog v-model="changeDialogVisible" title="登记户籍变动" width="500px" destroy-on-close>
+    <!-- 登记变动对话框 -->
+    <el-dialog v-model="changeDialogVisible" title="登记户籍变动" width="600px" destroy-on-close>
       <el-form ref="changeFormRef" :model="changeForm" :rules="changeRules" label-width="100px">
         <el-form-item label="变动类型" prop="changeType">
           <el-select v-model="changeForm.changeType" placeholder="请选择" style="width: 100%">
@@ -318,7 +318,7 @@ const queryForm = reactive({
   pageSize: 10
 })
 
-const dialogVisible = ref(false)
+const DrawerVisible = ref(false)
 const dialogTitle = ref('新增家庭户')
 const formRef = ref()
 const form = reactive({
@@ -414,7 +414,7 @@ const handleAdd = () => {
   form.headIdCard = ''
   form.phone = ''
   form.address = ''
-  dialogVisible.value = true
+  DrawerVisible.value = true
 }
 
 const handleEdit = async (row) => {
@@ -425,7 +425,7 @@ const handleEdit = async (row) => {
   form.headIdCard = row.headIdCard
   form.phone = row.phone
   form.address = row.address
-  dialogVisible.value = true
+  DrawerVisible.value = true
 }
 
 const handleSubmit = async () => {
@@ -438,7 +438,7 @@ const handleSubmit = async () => {
       await householdApi.create(form)
       ElMessage.success('创建成功')
     }
-    dialogVisible.value = false
+    DrawerVisible.value = false
     handleQuery()
   } catch (e) {
     if (e !== 'cancel') {
@@ -498,7 +498,9 @@ const handleAddMember = async () => {
   memberForm.relation = ''
   try {
     const res = await residentApi.list({ pageNum: 1, pageSize: 1000 })
-    residentOptions.value = res.list || []
+    // 过滤掉已经是当前家庭户成员的村民（未删除的）
+    const currentMemberIds = members.value.map(m => m.residentId)
+    residentOptions.value = (res.list || []).filter(r => !currentMemberIds.includes(r.id))
   } catch (e) {
     ElMessage.error('加载村民列表失败')
   }

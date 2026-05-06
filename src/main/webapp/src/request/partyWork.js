@@ -210,5 +210,26 @@ export const partyWorkApi = {
       url: '/partyWork/statistics/dues',
       method: 'get'
     })
+  },
+
+  /**
+   * 根据村民ID获取党员档案
+   */
+  getMemberByResidentId(residentId) {
+    return request({
+      url: `/partyWork/member/getByResidentId/${residentId}`,
+      method: 'get'
+    })
+  },
+
+  /**
+   * 根据村民ID获取党务活动参与记录
+   */
+  getActivitiesByResidentId(residentId) {
+    return request({
+      url: '/partyWork/activity/list',
+      method: 'post',
+      data: { participant: residentId, pageNum: 1, pageSize: 100 }
+    })
   }
 }
