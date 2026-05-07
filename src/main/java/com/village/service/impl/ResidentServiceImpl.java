@@ -101,17 +101,11 @@ public class ResidentServiceImpl implements ResidentService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
-        Resident resident = residentDao.selectById(id);
-        if (resident == null) {
-            throw new BusinessException("记录不存在");
-        }
-
-        // 使用 wrapper 方式更新，避免被 @TableLogic 拦截
-        LambdaQueryWrapper<Resident> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Resident::getId, id);
-        Resident update = new Resident();
-        update.setDeleted(1);
-        residentDao.update(update, wrapper);
+        com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper<Resident> wrapper =
+            new com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper<>();
+        wrapper.eq("id", id);
+        wrapper.set("deleted", 1);
+        residentDao.update(null, wrapper);
         log.info("删除村民档案成功，id={}", id);
     }
 

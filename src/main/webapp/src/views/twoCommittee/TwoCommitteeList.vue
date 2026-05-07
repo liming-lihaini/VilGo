@@ -142,7 +142,9 @@
 
         <el-table v-loading="meetingLoading" :data="meetingList" stripe border>
           <el-table-column type="index" label="序号" width="60" align="center" />
-          <el-table-column prop="meetingTime" label="会议时间" width="160" />
+          <el-table-column prop="meetingTime" label="会议时间" width="160">
+          <template #default="{ row }">{{ row.meetingTime?.slice(0, 10) }}</template>
+        </el-table-column>
           <el-table-column prop="location" label="会议地点" width="150" />
           <el-table-column prop="attendees" label="参会人员" min-width="150" show-overflow-tooltip />
           <el-table-column prop="content" label="会议内容" min-width="200" show-overflow-tooltip />
@@ -523,15 +525,15 @@ const loadTasks = async () => {
 const resetTaskQuery = () => { taskQuery.assigneeId = null; taskQuery.status = ''; taskQuery.pageNum = 1; loadTasks() }
 
 const handleAddTask = () => {
-  taskDialogTitle.value = '分配任务'
+  taskDrawerTitle.value = '分配任务'
   Object.assign(taskForm, { id: null, content: '', assigneeId: null, deadline: '', status: 'pending', result: '' })
-  taskDialogVisible.value = true
+  taskDrawerVisible.value = true
 }
 
 const handleEditTask = (row) => {
-  taskDialogTitle.value = '编辑任务'
+  taskDrawerTitle.value = '编辑任务'
   Object.assign(taskForm, row)
-  taskDialogVisible.value = true
+  taskDrawerVisible.value = true
 }
 
 const handleSubmitTask = async () => {
@@ -539,7 +541,7 @@ const handleSubmitTask = async () => {
     await taskFormRef.value.validate()
     if (taskForm.id) { await taskApi.update(taskForm); ElMessage.success('更新成功') }
     else { await taskApi.create(taskForm); ElMessage.success('创建成功') }
-    taskDialogVisible.value = false
+    taskDrawerVisible.value = false
     loadTasks()
   } catch (e) { if (e !== 'cancel') ElMessage.error(e.message || '操作失败') }
 }
@@ -591,15 +593,15 @@ const loadMeetings = async () => {
 const resetMeetingQuery = () => { meetingQuery.meetingTime = ''; meetingQuery.pageNum = 1; loadMeetings() }
 
 const handleAddMeeting = () => {
-  meetingDialogTitle.value = '新增会议'
+  meetingDrawerTitle.value = '新增会议'
   Object.assign(meetingForm, { id: null, meetingTime: '', location: '', attendees: '', content: '', resolution: '', implementation: '' })
-  meetingDialogVisible.value = true
+  meetingDrawerVisible.value = true
 }
 
 const handleEditMeeting = (row) => {
-  meetingDialogTitle.value = '编辑会议'
+  meetingDrawerTitle.value = '编辑会议'
   Object.assign(meetingForm, row)
-  meetingDialogVisible.value = true
+  meetingDrawerVisible.value = true
 }
 
 const handleSubmitMeeting = async () => {
@@ -607,7 +609,7 @@ const handleSubmitMeeting = async () => {
     await meetingFormRef.value.validate()
     if (meetingForm.id) { await meetingApi.update(meetingForm); ElMessage.success('更新成功') }
     else { await meetingApi.create(meetingForm); ElMessage.success('创建成功') }
-    meetingDialogVisible.value = false
+    meetingDrawerVisible.value = false
     loadMeetings()
   } catch (e) { if (e !== 'cancel') ElMessage.error(e.message || '操作失败') }
 }
@@ -624,7 +626,7 @@ const handleDeleteMeeting = async (row) => {
 const handleConvertToTask = (row) => {
   Object.assign(meetingForm, row)
   Object.assign(convertForm, { content: '', assigneeId: null, deadline: '' })
-  convertDialogVisible.value = true
+  convertDrawerVisible.value = true
 }
 
 const handleSubmitConvert = async () => {
@@ -632,7 +634,7 @@ const handleSubmitConvert = async () => {
     await convertFormRef.value.validate()
     await meetingApi.convertToTask({ ...convertForm, assigner: '系统' })
     ElMessage.success('任务创建成功')
-    convertDialogVisible.value = false
+    convertDrawerVisible.value = false
     activeTab.value = 'task'
     loadTasks()
   } catch (e) { ElMessage.error(e.message || '操作失败') }

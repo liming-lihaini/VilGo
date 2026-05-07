@@ -1,11 +1,19 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Layout from '@/views/Layout.vue'
+import Login from '@/views/Login.vue'
+import { useUserStore } from '@/store/user'
 
 const routes = [
+  {
+    path: '/login',
+    name: 'Login',
+    component: Login
+  },
   {
     path: '/',
     component: Layout,
     redirect: '/resident',
+    meta: { requiresAuth: true },
     children: [
       {
         path: '/resident',
@@ -68,6 +76,30 @@ const routes = [
         component: () => import('../views/partyWork/PartyWorkList.vue')
       },
       {
+        path: '/party-work/member',
+        name: 'PartyMember',
+        meta: { title: '党员档案' },
+        component: () => import('../views/partyWork/PartyMemberList.vue')
+      },
+      {
+        path: '/party-work/activity',
+        name: 'PartyActivity',
+        meta: { title: '党务活动' },
+        component: () => import('../views/partyWork/PartyActivityList.vue')
+      },
+      {
+        path: '/party-work/dues',
+        name: 'PartyDues',
+        meta: { title: '党费管理' },
+        component: () => import('../views/partyWork/PartyDuesList.vue')
+      },
+      {
+        path: '/party-work/statistics',
+        name: 'PartyStatistics',
+        meta: { title: '党务统计' },
+        component: () => import('../views/partyWork/PartyStatistics.vue')
+      },
+      {
         path: '/notice',
         name: 'Notice',
         meta: { title: '公示栏' },
@@ -92,6 +124,18 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+// 路由守卫
+router.beforeEach((to, from, next) => {
+  const userStore = useUserStore()
+  if (to.meta.requiresAuth && !userStore.isLoggedIn()) {
+    next('/login')
+  } else if (to.path === '/login' && userStore.isLoggedIn()) {
+    next('/')
+  } else {
+    next()
+  }
 })
 
 export default router

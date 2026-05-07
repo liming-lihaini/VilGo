@@ -96,10 +96,27 @@
     </el-menu>
 
     <div class="sidebar-footer">
-      <div class="user-info">
-        <el-icon><User /></el-icon>
-        <span v-show="!isCollapse">操作员</span>
-      </div>
+      <el-dropdown v-if="!isCollapse" @command="handleCommand">
+        <div class="user-info">
+          <el-icon><User /></el-icon>
+          <span class="username">{{ username }}</span>
+        </div>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+      <el-dropdown v-else @command="handleCommand">
+        <el-button type="danger" link>
+          <el-icon><SwitchButton /></el-icon>
+        </el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
     </div>
 
     <div class="sidebar-toggle" @click="toggleCollapse">
@@ -111,23 +128,33 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
-import { DArrowLeft, DArrowRight, User, House, UserFilled, Avatar, TrendCharts, Star, Bell, Document, DataBoard, Collection, Calendar } from '@element-plus/icons-vue'
+import { useRoute, useRouter } from 'vue-router'
+import { DArrowLeft, DArrowRight, User, House, UserFilled, Star, Bell, Document, DataBoard, Collection, Calendar, SwitchButton } from '@element-plus/icons-vue'
+import { useUserStore } from '@/store/user'
 import logoImage from '@/assets/images/logo-1.png'
 
 const route = useRoute()
+const router = useRouter()
+const userStore = useUserStore()
 const STORAGE_KEY = 'sidebar_collapse'
 
 const isCollapse = ref(false)
 const activeMenu = computed(() => route.path)
+const username = computed(() => {
+  const info = JSON.parse(localStorage.getItem('userInfo') || '{}')
+  return info.name || info.username || '用户'
+})
 
 const toggleCollapse = () => {
   isCollapse.value = !isCollapse.value
   localStorage.setItem(STORAGE_KEY, isCollapse.value ? '1' : '0')
 }
 
-const handleLogout = () => {
-  console.log('logout')
+const handleCommand = (command) => {
+  if (command === 'logout') {
+    userStore.logout()
+    router.replace('/login')
+  }
 }
 
 onMounted(() => {
@@ -303,12 +330,10 @@ onMounted(() => {
 }
 
 .sidebar-footer {
-  height: 70px;
+  height: 50px;
   border-top: 1px solid #e8e8e8;
-  padding: 12px;
+  padding: 8px 12px;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
@@ -320,12 +345,32 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   color: #666;
-  font-size: 13px;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 4px;
+  transition: all 0.3s;
+  width: 100%;
+  justify-content: center;
+}
+
+.sidebar-footer .user-info:hover {
+  background: #f5f7fa;
+  color: #1890ff;
+}
+
+.sidebar-footer .username {
+  color: #333;
+  font-weight: 500;
+}
+
+.sidebar-footer :deep(.el-dropdown-menu__item) {
+  padding: 8px 20px;
 }
 
 .sidebar-toggle {
   position: absolute;
-  bottom: 80px;
+  bottom: 50px;
   right: -12px;
   z-index: 10;
   width: 24px;

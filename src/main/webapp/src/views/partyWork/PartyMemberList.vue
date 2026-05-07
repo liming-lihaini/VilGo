@@ -209,7 +209,7 @@
     </el-drawer>
 
     <!-- 村民档案详情 -->
-    <ResidentDrawer v-model:visible="drawerVisible" :resident-id="currentResidentId" />
+    <ResidentDrawer v-model:visible="residentDrawerVisible" :resident-id="currentResidentId" />
   </div>
 </template>
 
@@ -271,13 +271,13 @@ const currentRow = ref({})
 const newStatus = ref('')
 
 // 村民档案详情
-const drawerVisible = ref(false)
+const residentDrawerVisible = ref(false)
 const currentResidentId = ref(null)
 
 // 查看详情
 const handleViewDetails = (row) => {
   currentResidentId.value = row.residentId || row.id
-  drawerVisible.value = true
+  residentDrawerVisible.value = true
 }
 
 // 生命周期

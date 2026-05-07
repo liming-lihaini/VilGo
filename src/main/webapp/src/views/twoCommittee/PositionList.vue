@@ -66,13 +66,13 @@ const loadData = async () => {
 }
 
 const handleAdd = () => {
-  dialogTitle.value = '新增职位'
+  drawerTitle.value = '新增职位'
   Object.assign(form, { id: null, name: '', code: '', sortOrder: 0 })
   drawerVisible.value = true
 }
 
 const handleEdit = (row) => {
-  dialogTitle.value = '编辑职位'
+  drawerTitle.value = '编辑职位'
   Object.assign(form, row)
   drawerVisible.value = true
 }

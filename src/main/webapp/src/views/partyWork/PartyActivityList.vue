@@ -77,8 +77,11 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="党员" prop="memberId">
-              <el-select v-model="formData.memberId" placeholder="请选择党员" style="width: 100%" filterable>
-                <el-option v-for="member in memberList" :key="member.id" :label="member.name || member.idCard" :value="member.id" />
+              <el-select v-model="formData.memberId" placeholder="请输入姓名搜索" style="width: 100%" filterable clearable remote default-first-option :remote-method="searchMember" :loading="memberLoading" @focus="loadMembers">
+                <el-option v-for="member in memberList" :key="member.id" :label="member.name" :value="member.id">
+                  <span>{{ member.name }}</span>
+                  <span style="color: #999; font-size: 12px; margin-left: 8px;">{{ member.idCard?.slice(-4) }}</span>
+                </el-option>
               </el-select>
             </el-form-item>
           </el-col>
@@ -115,7 +118,7 @@
           </el-col>
           <el-col :span="24">
             <el-form-item label="活动内容" prop="content">
-              <el-input v-model="formData.content" type="textarea" :rows="4" placeholder="请输入活动内容" />
+              <WangEditor v-model="formData.content" placeholder="请输入活动内容" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -134,6 +137,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { partyWorkApi } from '@/request/partyWork'
+import WangEditor from '@/components/WangEditor.vue'
 
 // 查询表单
 const queryForm = reactive({
@@ -145,6 +149,7 @@ const queryForm = reactive({
 const loading = ref(false)
 const tableData = ref([])
 const memberList = ref([])
+const memberLoading = ref(false)
 
 // 分页
 const pagination = reactive({
@@ -183,12 +188,26 @@ onMounted(() => {
 // 方法
 const loadMembers = async () => {
   try {
-    const res = await partyWorkApi.listMembers({ pageSize: 1000 })
-    if (res.code === 0) {
-      memberList.value = res.data.list || []
-    }
+    const data = await partyWorkApi.listMembers({ pageSize: 1000 })
+    memberList.value = data?.list || []
   } catch (error) {
     console.error('加载党员列表失败', error)
+  }
+}
+
+const searchMember = async (keyword) => {
+  if (!keyword) {
+    if (memberList.value.length === 0) loadMembers()
+    return
+  }
+  memberLoading.value = true
+  try {
+    const data = await partyWorkApi.listMembers({ name: keyword, pageSize: 20 })
+    memberList.value = data?.list || []
+  } catch (error) {
+    console.error('搜索党员失败', error)
+  } finally {
+    memberLoading.value = false
   }
 }
 
@@ -200,11 +219,9 @@ const handleQuery = async () => {
       pageNum: pagination.pageNum,
       pageSize: pagination.pageSize
     }
-    const res = await partyWorkApi.listActivities(params)
-    if (res.code === 0) {
-      tableData.value = res.data || []
-      pagination.total = res.data?.length || 0
-    }
+    const data = await partyWorkApi.listActivities(params)
+    tableData.value = data?.list || data || []
+    pagination.total = data?.total || 0
   } catch (error) {
     console.error('查询失败', error)
   } finally {
@@ -220,27 +237,28 @@ const handleReset = () => {
 
 const handleAdd = () => {
   resetForm()
-  dialogTitle.value = '新增活动'
+  drawerTitle.value = '新增活动'
   drawerVisible.value = true
 }
 
 const handleEdit = (row) => {
   Object.assign(formData, row)
-  dialogTitle.value = '编辑活动'
+  drawerTitle.value = '编辑活动'
   drawerVisible.value = true
 }
 
 const handleSubmit = async () => {
   try {
     await formRef.value.validate()
-    const res = formData.id ? await partyWorkApi.updateActivity(formData) : await partyWorkApi.createActivity(formData)
-    if (res.code === 0) {
-      ElMessage.success(formData.id ? '更新成功' : '新增成功')
-      drawerVisible.value = false
-      handleQuery()
+    if (formData.id) {
+      await partyWorkApi.updateActivity(formData)
+      ElMessage.success('更新成功')
     } else {
-      ElMessage.error(res.msg || '操作失败')
+      await partyWorkApi.createActivity(formData)
+      ElMessage.success('新增成功')
     }
+    drawerVisible.value = false
+    handleQuery()
   } catch (error) {
     console.error('操作失败', error)
   }
@@ -253,13 +271,9 @@ const handleDelete = (row) => {
     type: 'warning'
   }).then(async () => {
     try {
-      const res = await partyWorkApi.deleteActivity(row.id)
-      if (res.code === 0) {
-        ElMessage.success('删除成功')
-        handleQuery()
-      } else {
-        ElMessage.error(res.msg || '删除失败')
-      }
+      await partyWorkApi.deleteActivity(row.id)
+      ElMessage.success('删除成功')
+      handleQuery()
     } catch (error) {
       console.error('删除失败', error)
     }

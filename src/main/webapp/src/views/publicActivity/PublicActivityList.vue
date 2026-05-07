@@ -98,6 +98,14 @@
           <el-descriptions-item label="累计工时">{{ statistics.totalWorkHours || 0 }} 小时</el-descriptions-item>
           <el-descriptions-item label="累计工值">{{ statistics.totalWorkValue || 0 }} 元</el-descriptions-item>
         </el-descriptions>
+
+        <el-table v-loading="statsLoading" :data="participantStats" stripe border class="participant-table">
+          <el-table-column type="index" label="序号" width="60" align="center" />
+          <el-table-column prop="name" label="参与者姓名" min-width="120" />
+          <el-table-column prop="activityCount" label="参与活动数" width="100" align="center" />
+          <el-table-column prop="totalHours" label="累计工时" width="100" align="center" />
+          <el-table-column prop="totalValue" label="累计工值(元)" width="120" align="center" />
+        </el-table>
       </el-tab-pane>
     </el-tabs>
 
@@ -282,6 +290,8 @@ const residentQuery = reactive({ idCard: '', name: '', pageNum: 1, pageSize: 10 
 // 统计数据
 const statsQuery = reactive({ dateRange: [], activityType: '' })
 const statistics = ref({})
+const participantStats = ref([])
+const statsLoading = ref(false)
 
 onMounted(() => { loadActivities() })
 
@@ -406,6 +416,7 @@ const handleCancelSignup = async (row) => {
 
 // 统计方法
 const loadStatistics = async () => {
+  statsLoading.value = true
   try {
     const params = { activityType: statsQuery.activityType }
     if (statsQuery.dateRange && statsQuery.dateRange.length === 2) {
@@ -414,7 +425,9 @@ const loadStatistics = async () => {
     }
     const res = await publicActivityApi.statistics(params)
     statistics.value = res || {}
+    participantStats.value = res?.participantStats || []
   } catch (e) { ElMessage.error(e.message || '统计失败') }
+  finally { statsLoading.value = false }
 }
 
 // 状态转换

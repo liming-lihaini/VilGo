@@ -35,7 +35,7 @@
 
     <!-- 操作栏 -->
     <div class="toolbar">
-      <el-button type="primary" @click="handleAdd">新增村民</el-button>
+      <el-button type="primary" @click="handleAdd">添加</el-button>
       <el-button type="success" @click="handleImport">导入</el-button>
       <el-button type="danger" :disabled="selectedRows.length === 0" @click="handleBatchDelete">
         批量删除
@@ -46,12 +46,13 @@
     <el-table
       v-loading="loading"
       :data="tableData"
-      stripe
+      stripes
       border
       @selection-change="handleSelectionChange"
       style="width: 100%"
     >
       <el-table-column type="selection" width="55" />
+      <el-table-column type="index" label="序号" width="60" align="center" />
       <el-table-column prop="name" label="姓名" width="100">
         <template #default="{ row }">
           <el-button type="primary" link @click="handleViewDetails(row)">{{ row.name }}</el-button>
@@ -133,6 +134,7 @@
         :page-sizes="[10, 20, 50, 100]"
         :total="pagination.total"
         layout="total, sizes, prev, pager, next, jumper"
+        :pager-count="5"
         @size-change="handleQuery"
         @current-change="handleQuery"
       />
@@ -418,7 +420,7 @@ const handleReset = () => {
 
 // 新增
 const handleAdd = () => {
-  dialogTitle.value = '新增村民'
+  drawerTitle.value = '新增村民'
   Object.assign(formData, {
     id: null,
     name: '',

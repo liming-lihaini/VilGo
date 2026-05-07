@@ -123,17 +123,11 @@ public class PartyWorkServiceImpl implements PartyWorkService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
-        PartyMember member = partyMemberDao.selectById(id);
-        if (member == null) {
-            throw new BusinessException("记录不存在");
-        }
-
-        // 使用 wrapper 方式更新，避免被 @TableLogic 拦截
-        LambdaQueryWrapper<PartyMember> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(PartyMember::getId, id);
-        PartyMember update = new PartyMember();
-        update.setDeleted(1);
-        partyMemberDao.update(update, wrapper);
+        com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper<PartyMember> wrapper =
+            new com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper<>();
+        wrapper.eq("id", id);
+        wrapper.set("deleted", 1);
+        partyMemberDao.update(null, wrapper);
         log.info("删除党员档案成功，id={}", id);
     }
 
@@ -268,16 +262,11 @@ public class PartyWorkServiceImpl implements PartyWorkService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteActivity(Long id) {
-        PartyActivity activity = partyActivityDao.selectById(id);
-        if (activity == null) {
-            throw new BusinessException("记录不存在");
-        }
-
-        LambdaQueryWrapper<PartyActivity> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(PartyActivity::getId, id);
-        PartyActivity update = new PartyActivity();
-        update.setDeleted(1);
-        partyActivityDao.update(update, wrapper);
+        com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper<PartyActivity> wrapper =
+            new com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper<>();
+        wrapper.eq("id", id);
+        wrapper.set("deleted", 1);
+        partyActivityDao.update(null, wrapper);
         log.info("删除党务活动成功，id={}", id);
     }
 
@@ -360,16 +349,11 @@ public class PartyWorkServiceImpl implements PartyWorkService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteDues(Long id) {
-        PartyDues dues = partyDuesDao.selectById(id);
-        if (dues == null) {
-            throw new BusinessException("记录不存在");
-        }
-
-        LambdaQueryWrapper<PartyDues> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(PartyDues::getId, id);
-        PartyDues update = new PartyDues();
-        update.setDeleted(1);
-        partyDuesDao.update(update, wrapper);
+        com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper<PartyDues> wrapper =
+            new com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper<>();
+        wrapper.eq("id", id);
+        wrapper.set("deleted", 1);
+        partyDuesDao.update(null, wrapper);
         log.info("删除党费记录成功，id={}", id);
     }
 
