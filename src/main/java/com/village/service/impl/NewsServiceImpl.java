@@ -1,5 +1,6 @@
 package com.village.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.village.dto.NewsDTO;
@@ -140,10 +141,10 @@ public class NewsServiceImpl implements NewsService {
             throw new BusinessException("新闻不存在");
         }
 
-        // 软删除保留历史
-        news.setDeleted(1);
-        news.setUpdateTime(DateUtils.now());
-        newsDao.updateById(news);
+        UpdateWrapper<News> wrapper = new UpdateWrapper<>();
+        wrapper.eq("id", id);
+        wrapper.set("deleted", 1);
+        newsDao.update(null, wrapper);
         log.info("删除新闻成功，id={}, title={}", id, news.getTitle());
     }
 

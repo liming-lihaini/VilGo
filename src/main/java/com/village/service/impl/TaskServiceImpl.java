@@ -1,6 +1,7 @@
 package com.village.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.village.dao.TaskDao;
@@ -101,9 +102,10 @@ public class TaskServiceImpl implements TaskService {
             throw new BusinessException("任务不存在");
         }
 
-        task.setDeleted(1);
-        task.setUpdateTime(DateUtils.now());
-        taskDao.updateById(task);
+        UpdateWrapper<Task> wrapper = new UpdateWrapper<>();
+        wrapper.eq("id", id);
+        wrapper.set("deleted", 1);
+        taskDao.update(null, wrapper);
         log.info("删除任务成功，id={}", id);
     }
 

@@ -1,6 +1,7 @@
 package com.village.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.village.dao.PositionDao;
 import com.village.dto.PositionDTO;
 import com.village.entity.Position;
@@ -76,9 +77,10 @@ public class PositionServiceImpl implements PositionService {
             throw new BusinessException("职位不存在");
         }
 
-        position.setDeleted(1);
-        position.setUpdateTime(DateUtils.now());
-        positionDao.updateById(position);
+        UpdateWrapper<Position> wrapper = new UpdateWrapper<>();
+        wrapper.eq("id", id);
+        wrapper.set("deleted", 1);
+        positionDao.update(null, wrapper);
         log.info("删除职位成功，id={}", id);
     }
 

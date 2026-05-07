@@ -1,6 +1,7 @@
 package com.village.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.village.dao.PublicActivityDao;
@@ -115,9 +116,10 @@ public class PublicActivityServiceImpl implements PublicActivityService {
             throw new BusinessException("进行中或已归档的活动不能删除");
         }
 
-        activity.setDeleted(1);
-        activity.setUpdateTime(DateUtils.now());
-        activityDao.updateById(activity);
+        UpdateWrapper<PublicActivity> wrapper = new UpdateWrapper<>();
+        wrapper.eq("id", id);
+        wrapper.set("deleted", 1);
+        activityDao.update(null, wrapper);
         log.info("删除公益活动成功，id={}", id);
     }
 

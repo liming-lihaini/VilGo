@@ -1,6 +1,7 @@
 package com.village.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.village.dao.TwoCommitteeDao;
@@ -116,9 +117,10 @@ public class TwoCommitteeServiceImpl implements TwoCommitteeService {
             throw new BusinessException("请先完成或转移任务");
         }
 
-        member.setDeleted(1);
-        member.setUpdateTime(DateUtils.now());
-        twoCommitteeDao.updateById(member);
+        UpdateWrapper<TwoCommittee> wrapper = new UpdateWrapper<>();
+        wrapper.eq("id", id);
+        wrapper.set("deleted", 1);
+        twoCommitteeDao.update(null, wrapper);
         log.info("删除两委成员成功，id={}", id);
     }
 

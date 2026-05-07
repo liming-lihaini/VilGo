@@ -1,6 +1,7 @@
 package com.village.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.village.dao.MeetingDao;
@@ -76,8 +77,10 @@ public class MeetingServiceImpl implements MeetingService {
             throw new BusinessException("会议记录不存在");
         }
 
-        meeting.setDeleted(1);
-        meetingDao.updateById(meeting);
+        UpdateWrapper<Meeting> wrapper = new UpdateWrapper<>();
+        wrapper.eq("id", id);
+        wrapper.set("deleted", 1);
+        meetingDao.update(null, wrapper);
         log.info("删除会议记录成功，id={}", id);
     }
 

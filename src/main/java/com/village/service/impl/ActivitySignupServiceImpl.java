@@ -1,6 +1,7 @@
 package com.village.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.village.dao.ActivitySignupDao;
@@ -120,9 +121,10 @@ public class ActivitySignupServiceImpl implements ActivitySignupService {
             throw new BusinessException("报名记录不存在");
         }
 
-        signup.setDeleted(1);
-        signup.setUpdateTime(DateUtils.now());
-        signupDao.updateById(signup);
+        UpdateWrapper<ActivitySignup> wrapper = new UpdateWrapper<>();
+        wrapper.eq("id", id);
+        wrapper.set("deleted", 1);
+        signupDao.update(null, wrapper);
         log.info("删除活动报名成功，id={}", id);
     }
 

@@ -438,7 +438,7 @@ const convertFormRef = ref()
 const convertForm = reactive({ content: '', assigneeId: null, deadline: '' })
 const convertRules = { content: [{ required: true, message: '请输入任务内容', trigger: 'blur' }], assigneeId: [{ required: true, message: '请选择接收人', trigger: 'change' }] }
 
-onMounted(() => { loadMembers(); loadPositions() })
+onMounted(() => { loadMembers(); loadPositions(); loadTasks(); loadMeetings() })
 
 // 职位管理方法
 const loadPositions = async () => {
