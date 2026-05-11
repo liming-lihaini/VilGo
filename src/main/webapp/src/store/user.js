@@ -30,6 +30,8 @@ export const useUserStore = defineStore('user', () => {
     localStorage.removeItem('token')
     localStorage.removeItem('username')
     localStorage.removeItem('userInfo')
+    // 清除路由缓存
+    sessionStorage.removeItem('village_last_route')
   }
 
   const isLoggedIn = () => {

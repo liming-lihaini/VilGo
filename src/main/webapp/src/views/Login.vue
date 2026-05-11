@@ -47,7 +47,13 @@ const handleLogin = async () => {
       const result = userStore.login(form.username, form.password)
       if (result.success) {
         ElMessage.success('登录成功')
-        router.replace('/')
+        // 登录成功后跳转到缓存的路由或默认页面
+        const cachedRoute = sessionStorage.getItem('village_last_route')
+        if (cachedRoute && cachedRoute !== '/') {
+          router.replace(cachedRoute)
+        } else {
+          router.replace('/resident')
+        }
       } else {
         ElMessage.error(result.message)
       }

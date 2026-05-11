@@ -3,6 +3,27 @@ import Layout from '@/views/Layout.vue'
 import Login from '@/views/Login.vue'
 import { useUserStore } from '@/store/user'
 
+// 路由缓存key
+const ROUTE_CACHE_KEY = 'village_last_route'
+
+// 获取缓存的路由
+const getCachedRoute = () => {
+  try {
+    return sessionStorage.getItem(ROUTE_CACHE_KEY)
+  } catch {
+    return null
+  }
+}
+
+// 保存路由到缓存
+const setCachedRoute = (path) => {
+  try {
+    sessionStorage.setItem(ROUTE_CACHE_KEY, path)
+  } catch {
+    // 忽略存储错误
+  }
+}
+
 const routes = [
   {
     path: '/login',
@@ -126,16 +147,41 @@ const router = createRouter({
   routes
 })
 
-// 路由守卫
+// 路由守卫 - 每次路由导航后保存当前路由
+router.afterEach((to) => {
+  if (to.meta.requiresAuth && to.path !== '/login') {
+    setCachedRoute(to.fullPath)
+  }
+})
+
+// 路由守卫 - 认证检查
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
   if (to.meta.requiresAuth && !userStore.isLoggedIn()) {
     next('/login')
   } else if (to.path === '/login' && userStore.isLoggedIn()) {
-    next('/')
+    next()
   } else {
     next()
   }
 })
 
-export default router
+// 应用初始化时恢复缓存的路由
+const initRouter = async () => {
+  const cachedPath = getCachedRoute()
+  const userStore = useUserStore()
+
+  if (userStore.isLoggedIn() && cachedPath && cachedPath !== '/') {
+    // 验证缓存的路由是否有效
+    const route = router.getRoutes().find(r => r.path === cachedPath || r.fullPath === cachedPath)
+    if (route) {
+      router.replace(cachedPath)
+      return
+    }
+  }
+  // 默认跳转到村民档案
+  router.replace('/resident')
+}
+
+// 暴露初始化方法
+export { initRouter }

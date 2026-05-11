@@ -117,10 +117,10 @@ public class TwoCommitteeServiceImpl implements TwoCommitteeService {
             throw new BusinessException("请先完成或转移任务");
         }
 
-        UpdateWrapper<TwoCommittee> wrapper = new UpdateWrapper<>();
-        wrapper.eq("id", id);
-        wrapper.set("deleted", 1);
-        twoCommitteeDao.update(null, wrapper);
+        UpdateWrapper<TwoCommittee> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq("id", id);
+        updateWrapper.set("deleted", 1);
+        twoCommitteeDao.update(null, updateWrapper);
         log.info("删除两委成员成功，id={}", id);
     }
 
